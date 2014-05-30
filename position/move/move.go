@@ -19,8 +19,8 @@
 package move
 
 import (
-	"code.isana.io/isana/board/stone"
-	"code.isana.io/isana/board/vertex"
+	"github.com/foozea/isana/board/stone"
+	"github.com/foozea/isana/board/vertex"
 )
 
 type Move struct {

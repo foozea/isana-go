@@ -21,7 +21,7 @@ package vertex
 import (
 	"testing"
 
-	. "code.isana.io/isana/board/size"
+	. "github.com/foozea/isana/board/size"
 )
 
 func TestIsValid(t *testing.T) {

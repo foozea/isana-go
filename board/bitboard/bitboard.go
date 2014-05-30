@@ -19,7 +19,7 @@
 package bitboard
 
 import (
-	. "code.isana.io/isana/board/size"
+	. "github.com/foozea/isana/board/size"
 )
 
 type Bitboard [6]uint64

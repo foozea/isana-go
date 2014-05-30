@@ -19,11 +19,11 @@
 package protocol
 
 import (
-	. "code.isana.io/isana/board/size"
-	. "code.isana.io/isana/board/stone"
-	. "code.isana.io/isana/board/vertex"
-	. "code.isana.io/isana/position"
-	. "code.isana.io/isana/position/move"
+	. "github.com/foozea/isana/board/size"
+	. "github.com/foozea/isana/board/stone"
+	. "github.com/foozea/isana/board/vertex"
+	. "github.com/foozea/isana/position"
+	. "github.com/foozea/isana/position/move"
 
 	"fmt"
 	"os"

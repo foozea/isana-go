@@ -21,7 +21,7 @@ package bitboard
 import (
 	"testing"
 
-	. "code.isana.io/isana/board/size"
+	. "github.com/foozea/isana/board/size"
 )
 
 var (

@@ -19,9 +19,9 @@
 package position
 
 import (
-	. "code.isana.io/isana/board/bitboard"
-	. "code.isana.io/isana/board/stone"
-	. "code.isana.io/isana/board/vertex"
+	. "github.com/foozea/isana/board/bitboard"
+	. "github.com/foozea/isana/board/stone"
+	. "github.com/foozea/isana/board/vertex"
 
 	"fmt"
 )
