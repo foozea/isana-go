@@ -48,12 +48,22 @@ type Isana struct {
 }
 
 func CreateEngine(name string, version string) Isana {
-	return Isana{name, version, 0.0, 2500, 0.31, 0, 1}
+	return Isana{name, version, 0.0, 2000, 0.31, 0, 1}
 }
 
 func (n *Isana) Ponder(pos *Position, s Stone) Move {
-	n.MaxPlayoutDepth = float64(pos.Size.Capacity()) * 1.2
+
 	defer Un(Trace("Isana#Ponder"))
+
+	n.MaxPlayoutDepth = float64(pos.Size.Capacity()) * 1.2
+
+	for i := 0; i < pos.Size.Capacity(); i++ {
+		mv := CreateMove(s, Vertex{i, pos.Size})
+		pos.Moves = append(pos.Moves, *mv)
+	}
+	// Pass
+	pos.Moves = append(pos.Moves, PassMove)
+
 	var wg WaitGroup
 	for i := 0; i < n.Trials; i++ {
 		wg.Add(1)
@@ -82,18 +92,18 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 	maxUcb, selected := -999.0, 0
 	// If moves-slice is empty, create all moves.
 	if len(pos.Moves) == 0 {
-		for _, v := range pos.Empties() {
-			mv := CreateMove(s, *v)
-			_, ok := pos.PseudoMove(mv)
-			if !ok {
-				continue
-			}
+		for i := 0; i < pos.Size.Capacity(); i++ {
+			mv := CreateMove(s, Vertex{i, pos.Size})
 			pos.Moves = append(pos.Moves, *mv)
 		}
 		// Pass
 		pos.Moves = append(pos.Moves, PassMove)
 	}
 	for i, v := range pos.Moves {
+		_, ok := pos.PseudoMove(&v)
+		if !ok {
+			continue
+		}
 		ucb := 0.0
 		if v.Games == 0 {
 			ucb = 10000 + Float64()
