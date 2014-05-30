@@ -21,9 +21,9 @@ package move
 import (
 	"testing"
 
-	. "code.isana.io/isana/board/size"
-	. "code.isana.io/isana/board/stone"
-	. "code.isana.io/isana/board/vertex"
+	. "github.com/foozea/isana/board/size"
+	. "github.com/foozea/isana/board/stone"
+	. "github.com/foozea/isana/board/vertex"
 )
 
 func TestCreateMove(t *testing.T) {

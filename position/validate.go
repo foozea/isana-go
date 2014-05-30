@@ -19,8 +19,8 @@
 package position
 
 import (
-	. "code.isana.io/isana/board/stone"
-	. "code.isana.io/isana/position/move"
+	. "github.com/foozea/isana/board/stone"
+	. "github.com/foozea/isana/position/move"
 )
 
 /// Validations for PseudoMove

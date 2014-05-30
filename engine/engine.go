@@ -19,11 +19,11 @@
 package engine
 
 import (
-	. "code.isana.io/isana/board/stone"
-	. "code.isana.io/isana/board/vertex"
-	. "code.isana.io/isana/misc"
-	. "code.isana.io/isana/position"
-	. "code.isana.io/isana/position/move"
+	. "github.com/foozea/isana/board/stone"
+	. "github.com/foozea/isana/board/vertex"
+	. "github.com/foozea/isana/misc"
+	. "github.com/foozea/isana/position"
+	. "github.com/foozea/isana/position/move"
 
 	. "math"
 	. "math/rand"
@@ -46,7 +46,7 @@ type Isana struct {
 }
 
 func CreateEngine(name string, version string) Isana {
-	return Isana{name, version, 0.0, 2500, 0.31, 0, 20}
+	return Isana{name, version, 0.0, 1, 0.31, 0, 20}
 }
 
 func (n *Isana) Ponder(pos *Position, s Stone) Move {
