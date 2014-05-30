@@ -117,7 +117,7 @@ func (pos *Position) Score(stone Stone, komi float64) float64 {
 		if v != nil {
 			delta := 0.0
 			if pos.CountStringLiberty(id, v) > 1 {
-				score += float64(v.Value.CountBit())
+				delta = float64(v.Value.CountBit())
 			}
 			if v.Stone == Black {
 				score += delta

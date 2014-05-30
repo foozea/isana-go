@@ -65,13 +65,16 @@ func (n *Isana) Ponder(pos *Position, s Stone) Move {
 	wg.Wait()
 	selected, max := PassMove, -999.0
 	for _, v := range pos.Moves {
-		log.Printf("%v: %v(%v)", v.String(), v.Rate, v.Games)
+		log.Printf("%v: %1.5f(%v)", v.String(), v.Rate, v.Games)
 		if v.Games > max {
 			selected = v
 			max = v.Games
 		}
 	}
-	log.Printf("selected... %v: %v(%v)", selected.String(), selected.Rate, selected.Games)
+	log.Printf("selected... %v: %1.5f(%v)",
+		selected.String(),
+		selected.Rate,
+		selected.Games)
 	return selected
 }
 
