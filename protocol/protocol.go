@@ -60,7 +60,7 @@ func init() {
 	ArgsForHandlers = make(Args, 5)
 	GameController = CreateDefaultGameState()
 
-	// Add handlers
+	// register handlers
 	Dispatcher.AddHandler(Protocol_version, protocol_version)
 	Dispatcher.AddHandler(Name, name)
 	Dispatcher.AddHandler(Version, version)

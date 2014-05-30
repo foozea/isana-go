@@ -22,6 +22,7 @@ import (
 	. "github.com/foozea/isana/protocol"
 
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -36,9 +37,18 @@ const (
 	version string = "0.1"
 )
 
+var (
+	parallelNumber int
+)
+
 func init() {
-	cpus := runtime.NumCPU()
-	runtime.GOMAXPROCS(cpus)
+	// parse flags
+	flag.IntVar(&parallelNumber, "parallel", 1, "parallel number")
+	flag.IntVar(&parallelNumber, "p", 1, "parallel number")
+	flag.Parse()
+
+	//cpus := runtime.NumCPU()
+	runtime.GOMAXPROCS(parallelNumber)
 }
 
 func scan() string {
@@ -54,7 +64,7 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGHUP)
 
-	// hundle SIGNAL
+	// handle SIGNAL
 	go func() {
 		for sig := range c {
 			println(sig)
@@ -63,8 +73,11 @@ func main() {
 	}()
 
 	for {
+		// parse input commands and handle them.
 		input := strings.Split(scan(), " ")
 		command := input[0]
+
+		// first string is a command name.
 		ArgsForHandlers = input[1:len(input)]
 		if !Dispatcher.HasHandler(command) {
 			fmt.Println("= unknown command")

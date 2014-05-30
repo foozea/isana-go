@@ -29,6 +29,8 @@ import (
 	. "math/rand"
 	. "sync"
 	. "time"
+
+	"log"
 )
 
 func init() {
@@ -46,7 +48,7 @@ type Isana struct {
 }
 
 func CreateEngine(name string, version string) Isana {
-	return Isana{name, version, 0.0, 1, 0.31, 0, 20}
+	return Isana{name, version, 0.0, 2500, 0.31, 0, 1}
 }
 
 func (n *Isana) Ponder(pos *Position, s Stone) Move {
@@ -63,11 +65,13 @@ func (n *Isana) Ponder(pos *Position, s Stone) Move {
 	wg.Wait()
 	selected, max := PassMove, -999.0
 	for _, v := range pos.Moves {
+		log.Printf("%v: %v(%v)", v.String(), v.Rate, v.Games)
 		if v.Games > max {
 			selected = v
 			max = v.Games
 		}
 	}
+	log.Printf("selected... %v: %v(%v)", selected.String(), selected.Rate, selected.Games)
 	return selected
 }
 

@@ -161,7 +161,6 @@ func genmove(args Args) {
 	}
 	pos := GameController.GetCurrentPosition()
 	mv := Engine.Ponder(pos, stone)
-	//mv := Engine.Primitive(pos, stone)
 	ret := GameController.MakeMove(&mv)
 	if !ret {
 		fmt.Printf("= PASS\n\n")
