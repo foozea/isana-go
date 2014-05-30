@@ -3,10 +3,10 @@ package position
 import (
 	"testing"
 
-	. "github.com/foozea/isana/board/size"
-	. "github.com/foozea/isana/board/stone"
-	. "github.com/foozea/isana/board/vertex"
-	. "github.com/foozea/isana/position/move"
+	. "code.isana.io/isana/board/size"
+	. "code.isana.io/isana/board/stone"
+	. "code.isana.io/isana/board/vertex"
+	. "code.isana.io/isana/position/move"
 )
 
 var (

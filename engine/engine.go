@@ -19,18 +19,16 @@
 package engine
 
 import (
-	. "github.com/foozea/isana/board/stone"
-	. "github.com/foozea/isana/board/vertex"
-	. "github.com/foozea/isana/misc"
-	. "github.com/foozea/isana/position"
-	. "github.com/foozea/isana/position/move"
+	. "code.isana.io/isana/board/stone"
+	. "code.isana.io/isana/board/vertex"
+	. "code.isana.io/isana/misc"
+	. "code.isana.io/isana/position"
+	. "code.isana.io/isana/position/move"
 
 	. "math"
 	. "math/rand"
 	. "sync"
 	. "time"
-
-	"log"
 )
 
 func init() {
@@ -48,17 +46,12 @@ type Isana struct {
 }
 
 func CreateEngine(name string, version string) Isana {
-<<<<<<< HEAD
-	return Isana{name, version, 0.0, 2000, 0.31, 120, 20}
-=======
 	return Isana{name, version, 0.0, 2500, 0.31, 0, 20}
->>>>>>> develop
 }
 
 func (n *Isana) Ponder(pos *Position, s Stone) Move {
 	n.MaxPlayoutDepth = float64(pos.Size.Capacity()) * 1.2
 	defer Un(Trace("Isana#Ponder"))
-	n.MaxPlayoutDepth = float64(pos.Size.Capacity()) * 1.2
 	var wg WaitGroup
 	for i := 0; i < n.Trials; i++ {
 		wg.Add(1)
@@ -75,7 +68,6 @@ func (n *Isana) Ponder(pos *Position, s Stone) Move {
 			max = v.Games
 		}
 	}
-	log.Printf("selected: %v", selected.String())
 	return selected
 }
 
@@ -162,18 +154,9 @@ func (n *Isana) Inspiration(pos *Position, s Stone) *Move {
 	pos.UpdateProbs(i, 0)
 
 	mv := CreateMove(s, Vertex{i, pos.Size})
-<<<<<<< HEAD
-	if pos.IsLegalMove(mv) {
-		test := pos.PseudoMove(mv)
-		test.CreateString(mv.Stone, mv.Vertex)
-		if !test.IsSuicideMove(mv) && !test.IsFillEyeMove(mv) {
-			return mv
-		}
-=======
 	_, ok := pos.PseudoMove(mv)
 	if ok {
 		return mv
->>>>>>> develop
 	}
 	rec := n.Inspiration(pos, s)
 	// if skip this move, revert the probability.

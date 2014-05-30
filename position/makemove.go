@@ -19,10 +19,10 @@
 package position
 
 import (
-	. "github.com/foozea/isana/board/bitboard"
-	. "github.com/foozea/isana/board/stone"
-	. "github.com/foozea/isana/board/vertex"
-	. "github.com/foozea/isana/position/move"
+	. "code.isana.io/isana/board/bitboard"
+	. "code.isana.io/isana/board/stone"
+	. "code.isana.io/isana/board/vertex"
+	. "code.isana.io/isana/position/move"
 )
 
 func (pos *Position) TakeStone(stone Stone, vx Vertex) int {
