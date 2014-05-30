@@ -19,7 +19,7 @@
 package position
 
 import (
-	. "github.com/foozea/isana/board/bitboard"
+	. "code.isana.io/isana/board/bitboard"
 
 	. "math"
 	. "math/rand"

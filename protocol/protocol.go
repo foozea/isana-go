@@ -19,8 +19,8 @@
 package protocol
 
 import (
-	. "github.com/foozea/isana/control"
-	. "github.com/foozea/isana/engine"
+	. "code.isana.io/isana/control"
+	. "code.isana.io/isana/engine"
 )
 
 type Command string

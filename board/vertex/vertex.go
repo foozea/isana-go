@@ -19,7 +19,7 @@
 package vertex
 
 import (
-	. "github.com/foozea/isana/board/size"
+	. "code.isana.io/isana/board/size"
 	"strconv"
 	"strings"
 )

@@ -19,7 +19,7 @@
 package main
 
 import (
-	. "github.com/foozea/isana/protocol"
+	. "code.isana.io/isana/protocol"
 
 	"bufio"
 	"fmt"

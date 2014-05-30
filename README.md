@@ -25,8 +25,8 @@ It is currently uses the UCT engine with Monte-Carlo aproach
 
 ## Build / Install
 
-    go get github.com/foozea/isana
-    go install github.com/foozea/isana
+    go get code.isana.io/isana
+    go install code.isana.io/isana
 
 ## Requirements
 
