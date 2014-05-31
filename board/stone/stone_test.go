@@ -19,18 +19,8 @@
 package stone
 
 import (
-	"fmt"
 	"testing"
 )
-
-func init() {
-	fmt.Println("Dump...")
-	Black.Dump()
-	White.Dump()
-	Empty.Dump()
-	Wall.Dump()
-	fmt.Println("")
-}
 
 func TestOpposite(t *testing.T) {
 	var expected, actual Stone
@@ -87,6 +77,31 @@ func TestStringToStone(t *testing.T) {
 	}
 	actual = StringToStone("AAA")
 	expected = Wall
+	if expected != actual {
+		t.Errorf(msg, expected, actual)
+	}
+}
+
+func TestString(t *testing.T) {
+	var expected, actual string
+	const msg string = "String / couldn't convert to string. expected : %v, but %v"
+	actual = Black.String()
+	expected = "X"
+	if expected != actual {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = White.String()
+	expected = "O"
+	if expected != actual {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Empty.String()
+	expected = "."
+	if expected != actual {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Wall.String()
+	expected = " "
 	if expected != actual {
 		t.Errorf(msg, expected, actual)
 	}

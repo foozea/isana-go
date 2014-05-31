@@ -53,12 +53,12 @@ func (pos *Position) isFillEyeMove(move *Move) bool {
 	return false
 }
 
-func (pos *Position) isSuicideMove(move *Move) bool {
+func (pos *Position) isSuicideMove(move *Move, border int) bool {
 	stone := move.Stone
 	vx := move.Vertex
 	// 1. check the tempolary position and if the stone is not dead,
 	//    it is not suicide move.
-	if pos.CountStringLiberty(pos.GetString(vx)) > 0 {
+	if pos.CountStringLiberty(pos.GetString(vx)) > border {
 		return false
 	}
 	// 2. if the move can take opponent stone(s), not suicide.

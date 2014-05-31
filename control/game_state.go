@@ -60,7 +60,7 @@ func (s *GameState) CurrentStoneIs() Stone {
 
 func (s *GameState) MakeMove(move *Move) bool {
 	pos := s.GetCurrentPosition()
-	next, ok := pos.PseudoMove(move)
+	next, ok := pos.PseudoMove(move, false)
 	if !ok {
 		return false
 	}

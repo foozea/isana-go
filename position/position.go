@@ -19,13 +19,13 @@
 package position
 
 import (
+	"fmt"
+
 	. "github.com/foozea/isana/board/bitboard"
 	. "github.com/foozea/isana/board/size"
 	. "github.com/foozea/isana/board/stone"
 	. "github.com/foozea/isana/board/vertex"
 	. "github.com/foozea/isana/position/move"
-
-	"fmt"
 )
 
 type Position struct {
@@ -112,12 +112,12 @@ func (pos *Position) CountStringLiberty(id int, g *GoString) int {
 }
 
 func (pos *Position) Score(stone Stone, komi float64) float64 {
-	score := 0.0
+	score := 0
 	for id, v := range pos.GoStrings {
 		if v != nil {
-			delta := 0.0
+			delta := 0
 			if pos.CountStringLiberty(id, v) > 1 {
-				delta = float64(v.Value.CountBit())
+				delta = v.Value.CountBit()
 			}
 			if v.Stone == Black {
 				score += delta
@@ -128,6 +128,7 @@ func (pos *Position) Score(stone Stone, komi float64) float64 {
 	}
 	for _, v := range pos.Empties() {
 		up, down, left, right := v.Up(), v.Down(), v.Left(), v.Right()
+		///
 		bn := pos.blacks.GetBit(up.Index) +
 			pos.blacks.GetBit(down.Index) +
 			pos.blacks.GetBit(left.Index) +
@@ -142,16 +143,14 @@ func (pos *Position) Score(stone Stone, komi float64) float64 {
 			score--
 		}
 	}
-	score -= komi
-	score += float64(pos.BlackPrison - pos.WhitePrison)
-	win := 0.0
-	if score > 0.0 {
-		win = 1.0
+	score += pos.BlackPrison - pos.WhitePrison
+	if float64(score)-komi > 0.0 {
+		if stone == White {
+			return -1.0
+		}
+		return 1.0
 	}
-	if stone == White {
-		win = -win
-	}
-	return win
+	return 0
 }
 
 func (pos *Position) Dump() {
@@ -172,8 +171,7 @@ func (pos *Position) Dump() {
 		n := len(stones)
 		sts := stones[n-ls*(i+1) : n-ls*i]
 		for j, v := range sts {
-			v.Dump()
-			fmt.Printf(" ")
+			fmt.Printf(" %v ", v.String())
 			if (j+1)%ls == 0 {
 				fmt.Printf(" %v\n", ls-i)
 			}

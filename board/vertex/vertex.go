@@ -19,9 +19,10 @@
 package vertex
 
 import (
-	. "github.com/foozea/isana/board/size"
 	"strconv"
 	"strings"
+
+	. "github.com/foozea/isana/board/size"
 )
 
 type Vertex struct {

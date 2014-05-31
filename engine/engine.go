@@ -19,18 +19,18 @@
 package engine
 
 import (
-	. "github.com/foozea/isana/board/stone"
-	. "github.com/foozea/isana/board/vertex"
-	. "github.com/foozea/isana/misc"
-	. "github.com/foozea/isana/position"
-	. "github.com/foozea/isana/position/move"
+	"log"
 
 	. "math"
 	. "math/rand"
 	. "sync"
 	. "time"
 
-	"log"
+	. "github.com/foozea/isana/board/stone"
+	. "github.com/foozea/isana/board/vertex"
+	. "github.com/foozea/isana/misc"
+	. "github.com/foozea/isana/position"
+	. "github.com/foozea/isana/position/move"
 )
 
 var mutex = &Mutex{}
@@ -77,15 +77,18 @@ func (n *Isana) Ponder(pos *Position, s Stone) Move {
 			max = v.Games
 		}
 	}
+
 	log.Printf("selected... %v: %1.5f(%v)",
 		selected.String(),
 		selected.Rate,
 		selected.Games)
+
 	return selected
 }
 
 func (n *Isana) UCT(pos *Position, s Stone) float64 {
-	maxUcb, selected := -999.0, 0
+	maxUcb, selected := -999.0, pos.Size.Capacity()
+
 	// If moves-slice is empty, create all moves.
 	mutex.Lock()
 	if len(pos.Moves) == 0 {
@@ -93,18 +96,21 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 			mv := CreateMove(s, Vertex{i, pos.Size})
 			pos.Moves = append(pos.Moves, *mv)
 		}
-		// Pass
+		// Add pass
 		pos.Moves = append(pos.Moves, PassMove)
 	}
 	mutex.Unlock()
+
 	for i, v := range pos.Moves {
-		_, ok := pos.PseudoMove(&v)
-		if !ok {
-			continue
+		if v != PassMove {
+			_, ok := pos.PseudoMove(&v, true)
+			if !ok {
+				continue
+			}
 		}
 		ucb := 0.0
 		if v.Games == 0 {
-			ucb = 10000 + Float64()
+			ucb = 10000
 		} else {
 			ucb = v.Rate + n.factor*Sqrt(Log10(pos.Games)/v.Games)
 		}
@@ -113,24 +119,24 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 			selected = i
 		}
 	}
-	next, ok := pos.PseudoMove(&pos.Moves[selected])
+
+	mv := &pos.Moves[selected]
+	next, ok := pos.PseudoMove(mv, true)
 	if !ok {
 		next = pos // PassMove
 	}
-	next.FixMove(&pos.Moves[selected])
+	next.FixMove(mv)
 	win := 0.0
-	if pos.Moves[selected].Games < float64(n.minPlayout) {
+	if mv.Games < float64(n.minPlayout) {
 		win -= n.playout(CopyPosition(next), s.Opposite())
 	} else {
 		win -= n.UCT(next, s.Opposite())
 	}
 
 	mutex.Lock()
-	pos.Moves[selected].Rate =
-		(pos.Moves[selected].Rate*pos.Moves[selected].Games + win) /
-			(pos.Moves[selected].Games + 1)
+	mv.Rate = (mv.Rate*mv.Games + win) / (mv.Games + 1)
 
-	pos.Moves[selected].Games++
+	mv.Games++
 	pos.Games++
 	mutex.Unlock()
 
@@ -172,7 +178,7 @@ func (n *Isana) Inspiration(pos *Position, s Stone) *Move {
 	pos.UpdateProbs(i, 0)
 
 	mv := CreateMove(s, Vertex{i, pos.Size})
-	_, ok := pos.PseudoMove(mv)
+	_, ok := pos.PseudoMove(mv, true)
 	if ok {
 		return mv
 	}

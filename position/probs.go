@@ -19,11 +19,11 @@
 package position
 
 import (
-	. "github.com/foozea/isana/board/bitboard"
-
 	. "math"
 	. "math/rand"
 	. "time"
+
+	. "github.com/foozea/isana/board/bitboard"
 )
 
 func init() {

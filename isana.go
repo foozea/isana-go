@@ -19,8 +19,6 @@
 package main
 
 import (
-	. "github.com/foozea/isana/protocol"
-
 	"bufio"
 	"flag"
 	"fmt"
@@ -29,6 +27,8 @@ import (
 	"runtime"
 	"strings"
 	"syscall"
+
+	. "github.com/foozea/isana/protocol"
 )
 
 // Defines engine name and version.

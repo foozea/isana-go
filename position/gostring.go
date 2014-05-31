@@ -19,11 +19,11 @@
 package position
 
 import (
+	"fmt"
+
 	. "github.com/foozea/isana/board/bitboard"
 	. "github.com/foozea/isana/board/stone"
 	. "github.com/foozea/isana/board/vertex"
-
-	"fmt"
 )
 
 type GoString struct {
@@ -73,7 +73,7 @@ func (pos *Position) CreateString(s Stone, vx Vertex) int {
 			return i
 		}
 	}
-	panic("overflow: number of go-strings is over the limit.")
+	panic("number of go-strings overflow")
 }
 
 func (pos *Position) UpdateStrings() {
@@ -99,10 +99,7 @@ func (pos *Position) UpdateStrings() {
 }
 
 func (pos *Position) classification(
-	v Vertex,
-	s Stone,
-	id int,
-	value *Bitboard) int {
+	v Vertex, s Stone, id int, value *Bitboard) int {
 	///
 	if v.IsValid() && pos.GoStringMap[v.Index] > 0 {
 		return pos.GoStringMap[v.Index]
