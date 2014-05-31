@@ -39,16 +39,22 @@ const (
 
 var (
 	parallelNumber int
+	trialNumber    int
 )
 
 func init() {
 	// parse flags
-	flag.IntVar(&parallelNumber, "parallel", 1, "parallel number")
-	flag.IntVar(&parallelNumber, "p", 1, "parallel number")
+	flag.IntVar(&parallelNumber, "parallels", runtime.NumCPU(), "parallel number")
+	flag.IntVar(&parallelNumber, "p", runtime.NumCPU(), "parallel number")
+	flag.IntVar(&trialNumber, "trials", 2000, "uct trial number")
+	flag.IntVar(&trialNumber, "t", 2000, "uct trial number")
 	flag.Parse()
 
-	//cpus := runtime.NumCPU()
 	runtime.GOMAXPROCS(parallelNumber)
+
+	Engine.Name = name
+	Engine.Version = version
+	Engine.Trials = trialNumber
 }
 
 func scan() string {
@@ -58,8 +64,6 @@ func scan() string {
 }
 
 func main() {
-	Engine.Name = name
-	Engine.Version = version
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGHUP)

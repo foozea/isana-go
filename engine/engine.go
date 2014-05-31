@@ -33,6 +33,8 @@ import (
 	"log"
 )
 
+var mutex = &Mutex{}
+
 func init() {
 	Seed(Now().UTC().UnixNano())
 }
@@ -42,27 +44,20 @@ type Isana struct {
 	Version         string
 	Komi            float64
 	Trials          int
-	UCBFactor       float64
-	MaxPlayoutDepth float64
-	MinPlayout      int
+	factor          float64
+	maxPlayoutDepth float64
+	minPlayout      int
 }
 
-func CreateEngine(name string, version string) Isana {
-	return Isana{name, version, 0.0, 2000, 0.31, 0, 1}
+func CreateEngine() Isana {
+	return Isana{"", "", 0.0, 0, 0.31, 0, 1}
 }
 
 func (n *Isana) Ponder(pos *Position, s Stone) Move {
 
 	defer Un(Trace("Isana#Ponder"))
 
-	n.MaxPlayoutDepth = float64(pos.Size.Capacity()) * 1.2
-
-	for i := 0; i < pos.Size.Capacity(); i++ {
-		mv := CreateMove(s, Vertex{i, pos.Size})
-		pos.Moves = append(pos.Moves, *mv)
-	}
-	// Pass
-	pos.Moves = append(pos.Moves, PassMove)
+	n.maxPlayoutDepth = float64(pos.Size.Capacity()) * 1.2
 
 	var wg WaitGroup
 	for i := 0; i < n.Trials; i++ {
@@ -73,6 +68,7 @@ func (n *Isana) Ponder(pos *Position, s Stone) Move {
 		}()
 	}
 	wg.Wait()
+
 	selected, max := PassMove, -999.0
 	for _, v := range pos.Moves {
 		log.Printf("%v: %1.5f(%v)", v.String(), v.Rate, v.Games)
@@ -91,6 +87,7 @@ func (n *Isana) Ponder(pos *Position, s Stone) Move {
 func (n *Isana) UCT(pos *Position, s Stone) float64 {
 	maxUcb, selected := -999.0, 0
 	// If moves-slice is empty, create all moves.
+	mutex.Lock()
 	if len(pos.Moves) == 0 {
 		for i := 0; i < pos.Size.Capacity(); i++ {
 			mv := CreateMove(s, Vertex{i, pos.Size})
@@ -99,6 +96,7 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 		// Pass
 		pos.Moves = append(pos.Moves, PassMove)
 	}
+	mutex.Unlock()
 	for i, v := range pos.Moves {
 		_, ok := pos.PseudoMove(&v)
 		if !ok {
@@ -108,7 +106,7 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 		if v.Games == 0 {
 			ucb = 10000 + Float64()
 		} else {
-			ucb = v.Rate + n.UCBFactor*Sqrt(Log10(pos.Games)/v.Games)
+			ucb = v.Rate + n.factor*Sqrt(Log10(pos.Games)/v.Games)
 		}
 		if ucb > maxUcb {
 			maxUcb = ucb
@@ -121,18 +119,21 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 	}
 	next.FixMove(&pos.Moves[selected])
 	win := 0.0
-	if pos.Moves[selected].Games < float64(n.MinPlayout) {
+	if pos.Moves[selected].Games < float64(n.minPlayout) {
 		win -= n.playout(CopyPosition(next), s.Opposite())
 	} else {
 		win -= n.UCT(next, s.Opposite())
 	}
 
+	mutex.Lock()
 	pos.Moves[selected].Rate =
 		(pos.Moves[selected].Rate*pos.Moves[selected].Games + win) /
 			(pos.Moves[selected].Games + 1)
 
 	pos.Moves[selected].Games++
 	pos.Games++
+	mutex.Unlock()
+
 	return win
 }
 
@@ -141,7 +142,7 @@ func (n *Isana) playout(pos Position, stone Stone) float64 {
 	pos.CreateProbs()
 
 	s, passed := stone, false
-	depth := n.MaxPlayoutDepth
+	depth := n.maxPlayoutDepth
 	for depth > 0 {
 		m := n.Inspiration(&pos, s)
 		if m.Vertex == Outbound {

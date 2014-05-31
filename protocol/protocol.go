@@ -54,7 +54,7 @@ var (
 )
 
 func init() {
-	Engine = CreateEngine("", "")
+	Engine = CreateEngine()
 
 	Dispatcher = make(map[string]Handler, COMMANDS_COUNT)
 	ArgsForHandlers = make(Args, 5)
