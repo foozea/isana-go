@@ -168,12 +168,36 @@ func TestNot(t *testing.T) {
 	}
 }
 
-func TestRightShift(t *testing.T) {
+func TestRight(t *testing.T) {
 	var actual, expected Bitboard
-	const msg string = "RightShift / 1 bit right shift is not works. expected : %v, but %v"
+	const msg string = "Right / 1 bit right shift is not works. expected : %v, but %v"
 	b := Bitboard{}
 	b.SetBit(63)
-	actual = RightShift(b, B9x9)
+	actual = Right(b, B9x9)
+	expected = Bitboard{}
+	expected.SetBit(64)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Right(b, B11x11)
+	expected = Bitboard{}
+	expected.SetBit(64)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Right(b, B13x13)
+	expected = Bitboard{}
+	expected.SetBit(64)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Right(b, B15x15)
+	expected = Bitboard{}
+	expected.SetBit(64)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Right(b, B19x19)
 	expected = Bitboard{}
 	expected.SetBit(64)
 	if actual != expected {
@@ -181,49 +205,119 @@ func TestRightShift(t *testing.T) {
 	}
 }
 
-func TestLeftShift(t *testing.T) {
+func TestLeft(t *testing.T) {
 	var actual, expected Bitboard
-	const msg string = "LeftShift / 1 bit left shift is not works. expected : %v, but %v"
+	const msg string = "Left / 1 bit left shift is not works. expected : %v, but %v"
 	b := Bitboard{}
-	b.SetBit(63)
-	actual = LeftShift(b, B9x9)
-	expected = Bitboard{}
-	expected.SetBit(62)
-	expected = And(expected, bitmask9l)
-	if actual != expected {
-		t.Errorf(msg, expected, actual)
-	}
 	b.SetBit(76)
-	actual = LeftShift(b, B9x9)
+	actual = Left(b, B9x9)
 	expected = Bitboard{}
 	expected.SetBit(75)
 	if actual != expected {
 		t.Errorf(msg, expected, actual)
 	}
-}
-
-func TestUpShift(t *testing.T) {
-	var actual, expected Bitboard
-	const msg string = "UpShift / <line-size> bit right shift is not works. expected : %v, but %v"
-	b := Bitboard{}
-	b.SetBit(63)
-	actual = LeftShift(b, B9x9)
+	actual = Left(b, B11x11)
 	expected = Bitboard{}
-	expected.SetBit(72)
-	expected = And(expected, bitmask9r)
+	expected.SetBit(75)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Left(b, B13x13)
+	expected = Bitboard{}
+	expected.SetBit(75)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Left(b, B15x15)
+	expected = Bitboard{}
+	expected.SetBit(75)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	b.ClearBit(76)
+	b.SetBit(78)
+	actual = Left(b, B19x19)
+	expected = Bitboard{}
+	expected.SetBit(77)
 	if actual != expected {
 		t.Errorf(msg, expected, actual)
 	}
 }
 
-func TestDownShift(t *testing.T) {
+func TestUp(t *testing.T) {
 	var actual, expected Bitboard
-	const msg string = "DownShift / <line-size> bit left shift is not works. expected : %v, but %v"
+	const msg string = "Up / 1 bit up shift is not works. expected : %v, but %v"
+	b := Bitboard{}
+	b.SetBit(62)
+	actual = Up(b, B9x9)
+	expected = Bitboard{}
+	expected.SetBit(71)
+	expected = And(expected, bitmask9r)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Up(b, B11x11)
+	expected = Bitboard{}
+	expected.SetBit(73)
+	expected = And(expected, bitmask11r)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Up(b, B13x13)
+	expected = Bitboard{}
+	expected.SetBit(75)
+	expected = And(expected, bitmask13r)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Up(b, B15x15)
+	expected = Bitboard{}
+	expected.SetBit(77)
+	expected = And(expected, bitmask15r)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Up(b, B19x19)
+	expected = Bitboard{}
+	expected.SetBit(81)
+	expected = And(expected, bitmask19r)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+}
+
+func TestDown(t *testing.T) {
+	var actual, expected Bitboard
+	const msg string = "Down / 1 bit down shift is not works. expected : %v, but %v"
 	b := Bitboard{}
 	b.SetBit(63)
-	actual = DownShift(b, B9x9)
+	actual = Down(b, B9x9)
 	expected = Bitboard{}
 	expected.SetBit(54)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Down(b, B11x11)
+	expected = Bitboard{}
+	expected.SetBit(52)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Down(b, B13x13)
+	expected = Bitboard{}
+	expected.SetBit(50)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Down(b, B15x15)
+	expected = Bitboard{}
+	expected.SetBit(48)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Down(b, B19x19)
+	expected = Bitboard{}
+	expected.SetBit(44)
 	if actual != expected {
 		t.Errorf(msg, expected, actual)
 	}

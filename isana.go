@@ -19,15 +19,11 @@
 package main
 
 import (
-	. "github.com/foozea/isana/protocol"
-
-	"bufio"
-	"fmt"
-	"os"
-	"os/signal"
+	"flag"
 	"runtime"
-	"strings"
-	"syscall"
+
+	. "github.com/foozea/isana/protocol"
+	"github.com/foozea/isana/protocol/gtp"
 )
 
 // Defines engine name and version.
@@ -36,40 +32,24 @@ const (
 	version string = "0.1"
 )
 
-func init() {
-	cpus := runtime.NumCPU()
-	runtime.GOMAXPROCS(cpus)
-}
+var (
+	parallel int
+	trial    int
+)
 
-func scan() string {
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	return scanner.Text()
+func init() {
+	// parse flags
+	flag.IntVar(&parallel, "parallels", runtime.NumCPU(), "parallel number")
+	flag.IntVar(&trial, "trials", 2000, "uct trial number")
+	flag.Parse()
+
+	runtime.GOMAXPROCS(parallel)
+
+	Engine.Name = name
+	Engine.Version = version
+	Engine.Trials = trial
 }
 
 func main() {
-	Engine.Name = name
-	Engine.Version = version
-
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGHUP)
-
-	// hundle SIGNAL
-	go func() {
-		for sig := range c {
-			println(sig)
-			fmt.Printf("Interrupted...\n")
-		}
-	}()
-
-	for {
-		input := strings.Split(scan(), " ")
-		command := input[0]
-		ArgsForHandlers = input[1:len(input)]
-		if !Dispatcher.HasHandler(command) {
-			fmt.Println("= unknown command")
-			continue
-		}
-		Dispatcher.CallHandler(command)
-	}
+	gtp.Start()
 }

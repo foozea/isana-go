@@ -97,6 +97,11 @@ func TestUp(t *testing.T) {
 	if actual != expected {
 		t.Errorf(msg, expected, actual)
 	}
+	actual = Outbound.Up()
+	expected = Outbound
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
 }
 
 func TestDown(t *testing.T) {
@@ -104,6 +109,11 @@ func TestDown(t *testing.T) {
 	const msg string = "Down / the vertex didn't move to down. expected : %v, but %v"
 	actual = StringToVertex("E2", B9x9).Down()
 	expected = StringToVertex("E1", B9x9)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Outbound.Down()
+	expected = Outbound
 	if actual != expected {
 		t.Errorf(msg, expected, actual)
 	}
@@ -117,6 +127,11 @@ func TestLeft(t *testing.T) {
 	if actual != expected {
 		t.Errorf(msg, expected, actual)
 	}
+	actual = Outbound.Left()
+	expected = Outbound
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
 }
 
 func TestRight(t *testing.T) {
@@ -124,6 +139,11 @@ func TestRight(t *testing.T) {
 	const msg string = "Right / the vertex didn't move to right. expected : %v, but %v"
 	actual = StringToVertex("F2", B9x9).Right()
 	expected = StringToVertex("G2", B9x9)
+	if actual != expected {
+		t.Errorf(msg, expected, actual)
+	}
+	actual = Outbound.Right()
+	expected = Outbound
 	if actual != expected {
 		t.Errorf(msg, expected, actual)
 	}

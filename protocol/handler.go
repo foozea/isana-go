@@ -19,15 +19,14 @@
 package protocol
 
 import (
-	. "github.com/foozea/isana/board/size"
-	. "github.com/foozea/isana/board/stone"
-	. "github.com/foozea/isana/board/vertex"
-	. "github.com/foozea/isana/position"
-	. "github.com/foozea/isana/position/move"
-
 	"fmt"
 	"os"
 	"strconv"
+
+	. "github.com/foozea/isana/board/size"
+	. "github.com/foozea/isana/board/stone"
+	. "github.com/foozea/isana/board/vertex"
+	. "github.com/foozea/isana/position/move"
 )
 
 type Args []string
@@ -96,7 +95,6 @@ func boardsize(args Args) {
 		fmt.Println("? unacceptable size\n")
 		return
 	}
-	CreateHash(GameController.Size)
 	clear_board(args)
 }
 
@@ -161,7 +159,6 @@ func genmove(args Args) {
 	}
 	pos := GameController.GetCurrentPosition()
 	mv := Engine.Ponder(pos, stone)
-	//mv := Engine.Primitive(pos, stone)
 	ret := GameController.MakeMove(&mv)
 	if !ret {
 		fmt.Printf("= PASS\n\n")

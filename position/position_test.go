@@ -17,38 +17,6 @@ func init() {
 	pos = CreatePosition(B9x9)
 }
 
-func TestSetAndGetStone(t *testing.T) {
-	var actual, expected Stone
-	const msg string = "Set,GetStone / failed to set/get a stone. expected : %v, but %v"
-	pos := CreatePosition(B9x9)
-	vx1 := StringToVertex("E3", B9x9)
-	pos.SetStone(Black, vx1)
-	pos.Dump()
-	actual = pos.GetStone(vx1)
-	expected = Black
-	if actual != expected {
-		t.Errorf(msg, expected, actual)
-	}
-	vx2 := StringToVertex("E4", B9x9)
-	pos.SetStone(White, vx2)
-	pos.Dump()
-	actual = pos.GetStone(vx2)
-	expected = White
-	if actual != expected {
-		t.Errorf(msg, expected, actual)
-	}
-	actual = pos.GetStone(vx1)
-	expected = Black
-	if actual != expected {
-		t.Errorf(msg, expected, actual)
-	}
-	actual = pos.GetStone(Outbound)
-	expected = Wall
-	if actual != expected {
-		t.Errorf(msg, expected, actual)
-	}
-}
-
 func TestCountLiberty(t *testing.T) {
 	var actual, expected int
 	const msg string = "CountStringLiberty / counted number is not correct. expected : %v, but %v"
@@ -64,8 +32,6 @@ func TestCountLiberty(t *testing.T) {
 	}
 	v2 := StringToVertex("A9", B9x9)
 	pos.FixMove(CreateMove(Black, v2))
-	pos.Dump()
-	pos.GoStringDump()
 	actual = pos.CountStringLiberty(pos.GetString(v2))
 	expected = 1
 	if actual != expected {
@@ -94,14 +60,12 @@ func TestCountLiberty(t *testing.T) {
 	pos.FixMove(CreateMove(White, v8))
 	pos.FixMove(CreateMove(White, v9))
 	pos.FixMove(CreateMove(White, v10))
-	pos.Dump()
 	actual = pos.CountStringLiberty(pos.GetString(v5))
 	expected = 1
 	if actual != expected {
 		t.Errorf(msg, expected, actual)
 	}
 	pos.FixMove(CreateMove(White, v11))
-	pos.Dump()
 
 	pos = CreatePosition(B9x9)
 	v1 = StringToVertex("A5", B9x9)
@@ -121,9 +85,7 @@ func TestCountLiberty(t *testing.T) {
 	pos.FixMove(CreateMove(Black, v7))
 	pos.FixMove(CreateMove(White, v4))
 	pos.FixMove(CreateMove(White, v9))
-	pos.Dump()
 	pos.FixMove(CreateMove(White, v3))
-	pos.Dump()
 
 	pos = CreatePosition(B9x9)
 	v1 = StringToVertex("A8", B9x9)
@@ -135,26 +97,28 @@ func TestCountLiberty(t *testing.T) {
 	pos.FixMove(CreateMove(Black, v3))
 	pos.FixMove(CreateMove(White, v4))
 	pos.FixMove(CreateMove(White, v5))
-	pos.Dump()
 	pos.FixMove(CreateMove(Black, v1))
-	pos.Dump()
 }
 
 func TestScore(t *testing.T) {
 	var actual, expected float64
 	const msg string = "Score / failed to count valid score. expected : %v, but %v"
-	next := pos.PseudoMove(CreateMove(Black, StringToVertex("E4", B9x9)))
+	next, ok := pos.PseudoMove(CreateMove(Black, StringToVertex("E4", B9x9)), false)
+	if !ok {
+		t.Errorf(msg, true, ok)
+	}
 	next.FixMove(CreateMove(White, StringToVertex("E3", B9x9)))
 	next.FixMove(CreateMove(Black, StringToVertex("E2", B9x9)))
 	next.FixMove(CreateMove(Black, StringToVertex("D3", B9x9)))
 	next.FixMove(CreateMove(Black, StringToVertex("F3", B9x9)))
 	next.FixMove(CreateMove(White, StringToVertex("A3", B9x9)))
 	next.FixMove(CreateMove(White, StringToVertex("A4", B9x9)))
-	next.Dump()
 
 	actual = next.Score(Black, 0.0)
 	expected = 1
 	if actual != expected {
 		t.Errorf(msg, expected, actual)
 	}
+
+	pos.Dump()
 }

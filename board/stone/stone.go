@@ -19,7 +19,6 @@
 package stone
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -56,13 +55,14 @@ func StringToStone(str string) Stone {
 	return Wall
 }
 
-func (s Stone) Dump() {
+func (s Stone) String() string {
 	switch s {
 	case Empty:
-		fmt.Print(" .")
+		return "."
 	case Black:
-		fmt.Print(" X")
+		return "X"
 	case White:
-		fmt.Print(" O")
+		return "O"
 	}
+	return " "
 }

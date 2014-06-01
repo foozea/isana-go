@@ -45,6 +45,20 @@ func (pos *Position) TakeStone(stone Stone, vx Vertex) int {
 	return prisoners
 }
 
+func (pos *Position) PseudoMoveStrict(mv *Move) (next *Position, ok bool) {
+	if !pos.isLegalMove(mv) {
+		return nil, false
+	}
+	test := CopyPosition(pos)
+	test.SetStone(mv.Stone, mv.Vertex)
+	test.CreateString(mv.Stone, mv.Vertex)
+	// strict mode
+	if test.isSuicideMove(mv, 1) || test.isFillEyeMove(mv) {
+		return nil, false
+	}
+	return &test, true
+}
+
 func (pos *Position) PseudoMove(mv *Move) (next *Position, ok bool) {
 	if !pos.isLegalMove(mv) {
 		return nil, false
@@ -52,18 +66,19 @@ func (pos *Position) PseudoMove(mv *Move) (next *Position, ok bool) {
 	test := CopyPosition(pos)
 	test.SetStone(mv.Stone, mv.Vertex)
 	test.CreateString(mv.Stone, mv.Vertex)
-	if test.isSuicideMove(mv) || test.isFillEyeMove(mv) {
+	if test.isSuicideMove(mv, 0) {
 		return nil, false
 	}
 	return &test, true
 }
 
-func (pos *Position) FixMove(move *Move) *Position {
+func (pos *Position) FixMove(move *Move) {
 	pos.SetStone(move.Stone, move.Vertex)
 	opp, v := move.Stone.Opposite(), move.Vertex
 	_ = pos.CreateString(move.Stone, move.Vertex)
 
-	up, down, left, right := v.Up(), v.Down(), v.Left(), v.Right()
+	up, down, left, right :=
+		v.Up(), v.Down(), v.Left(), v.Right()
 	upS, downS, leftS, rightS :=
 		pos.GetStone(up), pos.GetStone(down), pos.GetStone(left), pos.GetStone(right)
 
@@ -80,7 +95,6 @@ func (pos *Position) FixMove(move *Move) *Position {
 		pos.WhitePrison += prisonersCount
 		pos.BlackPrison += suicideCount
 	}
-
 	ko_flag := false
 	if (leftS == opp || leftS == Wall) &&
 		(rightS == opp || rightS == Wall) &&
@@ -88,7 +102,6 @@ func (pos *Position) FixMove(move *Move) *Position {
 		(downS == opp || downS == Wall) {
 		ko_flag = true
 	}
-
 	if prisonersCount == 1 && ko_flag {
 		pos.KoStone = move.Stone
 		if pos.GetStone(up) == Empty {
@@ -103,6 +116,4 @@ func (pos *Position) FixMove(move *Move) *Position {
 	} else {
 		pos.Ko, pos.KoStone = Outbound, Empty
 	}
-
-	return pos
 }

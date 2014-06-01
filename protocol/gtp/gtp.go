@@ -16,27 +16,49 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package move
+package gtp
 
 import (
-	"github.com/foozea/isana/board/stone"
-	"github.com/foozea/isana/board/vertex"
+	"bufio"
+	"fmt"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+
+	. "github.com/foozea/isana/protocol"
 )
 
-type Move struct {
-	Stone  stone.Stone
-	Vertex vertex.Vertex
-	///
-	Games int
-	Rate  float64
+func scan() string {
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	return scanner.Text()
 }
 
-var PassMove Move = Move{stone.Empty, vertex.Outbound, 0.0, 0.0}
+func Start() {
 
-func CreateMove(s stone.Stone, v vertex.Vertex) *Move {
-	return &Move{s, v, 0.0, 0.0}
-}
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGHUP)
 
-func (m *Move) String() string {
-	return m.Vertex.String()
+	// handle SIGNAL
+	go func() {
+		for sig := range c {
+			println(sig)
+			fmt.Printf("Interrupted...\n")
+		}
+	}()
+
+	for {
+		// parse input commands and handle them.
+		input := strings.Split(scan(), " ")
+		command := input[0]
+
+		// first string is a command name.
+		ArgsForHandlers = input[1:len(input)]
+		if !Dispatcher.HasHandler(command) {
+			fmt.Println("= unknown command")
+			continue
+		}
+		Dispatcher.CallHandler(command)
+	}
 }
