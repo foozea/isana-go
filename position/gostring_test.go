@@ -54,4 +54,6 @@ func TestUpdateString(t *testing.T) {
 	if g3.Stone != White {
 		t.Errorf(msg, g3.Stone, White)
 	}
+
+	pos.GoStringDump()
 }

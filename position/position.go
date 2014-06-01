@@ -42,7 +42,7 @@ type Position struct {
 	GoStringMap GoStringMap
 	GoStrings   GoStringIdentifier
 	///
-	Games         float64
+	Games         int
 	Moves         []Move
 	ProbDencities [361]int
 	TotalProbs    int
@@ -94,10 +94,8 @@ func (pos *Position) CountStringLiberty(id int, g *GoString) int {
 		return 1
 	}
 	n := Xor(Or(
-		LeftShift(g.Value, pos.Size),
-		RightShift(g.Value, pos.Size),
-		UpShift(g.Value, pos.Size),
-		DownShift(g.Value, pos.Size),
+		Left(g.Value, pos.Size), Right(g.Value, pos.Size),
+		Up(g.Value, pos.Size), Down(g.Value, pos.Size),
 		g.Value), g.Value)
 
 	var bits Bitboard

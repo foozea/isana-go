@@ -69,7 +69,7 @@ func (n *Isana) Ponder(pos *Position, s Stone) Move {
 	}
 	wg.Wait()
 
-	selected, max := PassMove, -999.0
+	selected, max := PassMove, -999
 	for _, v := range pos.Moves {
 		log.Printf("%v: %1.5f(%v)", v.String(), v.Rate, v.Games)
 		if v.Games > max {
@@ -112,7 +112,7 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 		if v.Games == 0 {
 			ucb = 10000
 		} else {
-			ucb = v.Rate + n.factor*Sqrt(Log10(pos.Games)/v.Games)
+			ucb = v.Rate + n.factor*Sqrt(Log10(float64(pos.Games))/float64(v.Games))
 		}
 		if ucb > maxUcb {
 			maxUcb = ucb
@@ -127,14 +127,14 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 	}
 	next.FixMove(mv)
 	win := 0.0
-	if mv.Games < float64(n.minPlayout) {
+	if mv.Games < n.minPlayout {
 		win -= n.playout(CopyPosition(next), s.Opposite())
 	} else {
 		win -= n.UCT(next, s.Opposite())
 	}
 
 	mutex.Lock()
-	mv.Rate = (mv.Rate*mv.Games + win) / (mv.Games + 1)
+	mv.Rate = (mv.Rate*float64(mv.Games) + win) / float64(mv.Games+1)
 
 	mv.Games++
 	pos.Games++
@@ -174,7 +174,7 @@ func (n *Isana) Inspiration(pos *Position, s Stone) *Move {
 	// loop at all candidates randomly
 	i := pos.SearchProbIndex(Intn(pos.TotalProbs))
 	// set the probability to 0.
-	current := pos.ProbDencities[i]
+	current := pos.ProbDencities[i] // keep the current value
 	pos.UpdateProbs(i, 0)
 
 	mv := CreateMove(s, Vertex{i, pos.Size})

@@ -27,7 +27,7 @@ type Move struct {
 	Stone  stone.Stone
 	Vertex vertex.Vertex
 	///
-	Games float64
+	Games int
 	Rate  float64
 }
 

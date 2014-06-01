@@ -119,4 +119,6 @@ func TestScore(t *testing.T) {
 	if actual != expected {
 		t.Errorf(msg, expected, actual)
 	}
+
+	pos.Dump()
 }
