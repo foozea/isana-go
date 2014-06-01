@@ -16,40 +16,35 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package main
+package position
 
 import (
-	"flag"
-	"runtime"
+	. "github.com/foozea/isana/board/size"
+	. "github.com/foozea/isana/board/stone"
+	. "github.com/foozea/isana/board/vertex"
+	. "github.com/foozea/isana/position/move"
 
-	. "github.com/foozea/isana/protocol"
-	"github.com/foozea/isana/protocol/gtp"
+	. "math/rand"
+	. "time"
 )
 
-// Defines engine name and version.
-const (
-	name    string = "Isana"
-	version string = "0.1"
-)
+type MoveHashType map[Move]uint64
+type ZobristHash map[uint64](*Position)
 
-var (
-	parallel int
-	trial    int
-)
+var MoveHash MoveHashType
+var PositionHash ZobristHash
 
 func init() {
-	// parse flags
-	flag.IntVar(&parallel, "parallels", runtime.NumCPU(), "parallel number")
-	flag.IntVar(&trial, "trials", 2000, "uct trial number")
-	flag.Parse()
-
-	runtime.GOMAXPROCS(parallel)
-
-	Engine.Name = name
-	Engine.Version = version
-	Engine.Trials = trial
+	Seed(Now().UTC().UnixNano())
 }
 
-func main() {
-	gtp.Start()
+func CreateHash(size BoardSize) {
+	MoveHash = make(MoveHashType, size.Capacity()*2)
+	for i := 0; i < size.Capacity(); i++ {
+		v := Vertex{i, size}
+		black := CreateMove(Black, v)
+		white := CreateMove(White, v)
+		MoveHash[*black] = uint64(Uint32())<<32 | uint64(Uint32())
+		MoveHash[*white] = uint64(Uint32())<<32 | uint64(Uint32())
+	}
 }

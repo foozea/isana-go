@@ -45,7 +45,7 @@ type Isana struct {
 	Komi            float64
 	Trials          int
 	factor          float64
-	maxPlayoutDepth float64
+	maxPlayoutDepth int
 	minPlayout      int
 }
 
@@ -57,7 +57,7 @@ func (n *Isana) Ponder(pos *Position, s Stone) Move {
 
 	defer Un(Trace("Isana#Ponder"))
 
-	n.maxPlayoutDepth = float64(pos.Size.Capacity()) * 1.2
+	n.maxPlayoutDepth = int(Floor(float64(pos.Size.Capacity()) * 1.2))
 
 	var wg WaitGroup
 	for i := 0; i < n.Trials; i++ {
@@ -103,7 +103,7 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 
 	for i, v := range pos.Moves {
 		if v != PassMove {
-			_, ok := pos.PseudoMove(&v, true)
+			_, ok := pos.PseudoMoveStrict(&v)
 			if !ok {
 				continue
 			}
@@ -121,10 +121,10 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 	}
 
 	mv := &pos.Moves[selected]
-	next, ok := pos.PseudoMove(mv, true)
-	if !ok {
-		next = pos // PassMove
-	}
+	next, ok := pos.PseudoMoveStrict(mv)
+  if !ok {
+    next = pos
+  }
 	next.FixMove(mv)
 	win := 0.0
 	if mv.Games < n.minPlayout {
@@ -135,7 +135,6 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 
 	mutex.Lock()
 	mv.Rate = (mv.Rate*float64(mv.Games) + win) / float64(mv.Games+1)
-
 	mv.Games++
 	pos.Games++
 	mutex.Unlock()
@@ -178,7 +177,7 @@ func (n *Isana) Inspiration(pos *Position, s Stone) *Move {
 	pos.UpdateProbs(i, 0)
 
 	mv := CreateMove(s, Vertex{i, pos.Size})
-	_, ok := pos.PseudoMove(mv, true)
+	_, ok := pos.PseudoMoveStrict(mv)
 	if ok {
 		return mv
 	}

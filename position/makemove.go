@@ -45,28 +45,34 @@ func (pos *Position) TakeStone(stone Stone, vx Vertex) int {
 	return prisoners
 }
 
-func (pos *Position) PseudoMove(mv *Move, strict bool) (next *Position, ok bool) {
+func (pos *Position) PseudoMoveStrict(mv *Move) (next *Position, ok bool) {
 	if !pos.isLegalMove(mv) {
 		return nil, false
 	}
 	test := CopyPosition(pos)
 	test.SetStone(mv.Stone, mv.Vertex)
 	test.CreateString(mv.Stone, mv.Vertex)
-	if strict {
-		// strict mode
-		if test.isSuicideMove(mv, 1) || test.isFillEyeMove(mv) {
-			return nil, false
-		}
-	} else {
-		// normal mode
-		if test.isSuicideMove(mv, 0) {
-			return nil, false
-		}
+	// strict mode
+	if test.isSuicideMove(mv, 1) || test.isFillEyeMove(mv) {
+		return nil, false
 	}
 	return &test, true
 }
 
-func (pos *Position) FixMove(move *Move) *Position {
+func (pos *Position) PseudoMove(mv *Move) (next *Position, ok bool) {
+	if !pos.isLegalMove(mv) {
+		return nil, false
+	}
+	test := CopyPosition(pos)
+	test.SetStone(mv.Stone, mv.Vertex)
+	test.CreateString(mv.Stone, mv.Vertex)
+	if test.isSuicideMove(mv, 0) {
+		return nil, false
+	}
+	return &test, true
+}
+
+func (pos *Position) FixMove(move *Move) {
 	pos.SetStone(move.Stone, move.Vertex)
 	opp, v := move.Stone.Opposite(), move.Vertex
 	_ = pos.CreateString(move.Stone, move.Vertex)
@@ -110,5 +116,4 @@ func (pos *Position) FixMove(move *Move) *Position {
 	} else {
 		pos.Ko, pos.KoStone = Outbound, Empty
 	}
-	return pos
 }

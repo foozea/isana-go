@@ -16,40 +16,49 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package main
+package gtp
 
 import (
-	"flag"
-	"runtime"
+	"bufio"
+	"fmt"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
 
 	. "github.com/foozea/isana/protocol"
-	"github.com/foozea/isana/protocol/gtp"
 )
 
-// Defines engine name and version.
-const (
-	name    string = "Isana"
-	version string = "0.1"
-)
-
-var (
-	parallel int
-	trial    int
-)
-
-func init() {
-	// parse flags
-	flag.IntVar(&parallel, "parallels", runtime.NumCPU(), "parallel number")
-	flag.IntVar(&trial, "trials", 2000, "uct trial number")
-	flag.Parse()
-
-	runtime.GOMAXPROCS(parallel)
-
-	Engine.Name = name
-	Engine.Version = version
-	Engine.Trials = trial
+func scan() string {
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	return scanner.Text()
 }
 
-func main() {
-	gtp.Start()
+func Start() {
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGHUP)
+
+	// handle SIGNAL
+	go func() {
+		for sig := range c {
+			println(sig)
+			fmt.Printf("Interrupted...\n")
+		}
+	}()
+
+	for {
+		// parse input commands and handle them.
+		input := strings.Split(scan(), " ")
+		command := input[0]
+
+		// first string is a command name.
+		ArgsForHandlers = input[1:len(input)]
+		if !Dispatcher.HasHandler(command) {
+			fmt.Println("= unknown command")
+			continue
+		}
+		Dispatcher.CallHandler(command)
+	}
 }

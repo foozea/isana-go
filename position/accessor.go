@@ -52,13 +52,12 @@ func (pos *Position) SetStone(stone Stone, vx Vertex) bool {
 	return true
 }
 
-func (pos *Position) Empties() [](*Vertex) {
-	vs := make([](*Vertex), 0)
+func (pos *Position) Empties() []Vertex {
+	vs := make([]Vertex, 0)
 	bits := Or(pos.blacks, pos.whites)
 	for i := 0; i < pos.Size.Capacity(); i++ {
 		if bits.GetBit(i) == 0 {
-			v := Vertex{i, pos.Size}
-			vs = append(vs, &v)
+			vs = append(vs, Vertex{i, pos.Size})
 		}
 	}
 	return vs
