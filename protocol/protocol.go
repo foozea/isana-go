@@ -18,27 +18,18 @@
 
 package protocol
 
-import (
-	. "github.com/foozea/isana/control"
-	. "github.com/foozea/isana/engine"
-)
-
 type Args []string
 type Handler func(Args)
 type Command string
 type CommandMap map[string]Handler
 
 var (
-	Engine          Isana
 	Dispatcher      CommandMap
 	ArgsForHandlers Args
-	GameController  GameState
 )
 
 func init() {
-	Engine = CreateEngine()
 	Dispatcher = make(map[string]Handler, 0)
-	GameController = CreateDefaultGameState()
 }
 
 func (m CommandMap) AddHandler(key Command, handler func(Args)) {

@@ -40,7 +40,9 @@ type TimeSettings struct {
 	ByoYomiStones int
 }
 
-func CreateDefaultGameState() GameState {
+var Observer = createDefaultGameState()
+
+func createDefaultGameState() GameState {
 	komi := 0.0
 	timeset := TimeSettings{60, 600, 25}
 	return GameState{B9x9, nil, Empty, komi, timeset}

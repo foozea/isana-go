@@ -34,6 +34,7 @@ import (
 )
 
 var mutex = &Mutex{}
+var Engine = createEngine()
 
 func init() {
 	Seed(Now().UTC().UnixNano())
@@ -43,19 +44,45 @@ type Isana struct {
 	Name            string
 	Version         string
 	Komi            float64
+	Roots           int
 	Trials          int
 	factor          float64
 	maxPlayoutDepth int
 	minPlayout      int
 }
 
-func CreateEngine() Isana {
-	return Isana{"", "", 0.0, 0, 0.31, 0, 1}
+func createEngine() Isana {
+	return Isana{"", "", 0.0, 1, 0, 0.31, 0, 1}
+}
+
+func (n *Isana) Answer(pos *Position, stone Stone) Move {
+
+	defer Un(Trace("Isana#Answer"))
+
+	// Root Parallelize
+	mvs := make([]Move, 0)
+	var wg WaitGroup
+	for i := 0; i < n.Roots; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			copied := CopyPosition(pos)
+			mvs = append(mvs, n.Think(&copied, stone))
+		}()
+	}
+	wg.Wait()
+	selected := mvs[0]
+	for i, v := range mvs {
+		log.Printf("selected by Isana #%v ... %v: %1.5f(%v)",
+			i+1, v.String(), v.Rate, v.Games)
+		if selected.Games < v.Games {
+			selected = v
+		}
+	}
+	return selected
 }
 
 func (n *Isana) Think(pos *Position, s Stone) Move {
-
-	defer Un(Trace("Isana#Think"))
 
 	n.maxPlayoutDepth = int(Floor(float64(pos.Size.Capacity()) * 1.2))
 
@@ -72,19 +99,13 @@ func (n *Isana) Think(pos *Position, s Stone) Move {
 
 	selected, max := PassMove, -999
 	for _, v := range pos.Moves {
-		log.Printf("%v: %1.5f(%v) Rave: %1.5f/%v",
-			v.String(), v.Rate, v.Games, v.RaveRate, v.RaveGames)
+		//		log.Printf("%v: %1.5f(%v) Rave: %1.5f/%v",
+		//			v.String(), v.Rate, v.Games, v.RaveRate, v.RaveGames)
 		if v.Games > max {
 			selected = v
 			max = v.Games
 		}
 	}
-
-	log.Printf("selected... %v: %1.5f(%v)",
-		selected.String(),
-		selected.Rate,
-		selected.Games)
-
 	return selected
 }
 

@@ -22,34 +22,27 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"sync"
 
 	. "github.com/foozea/isana/board/size"
 	. "github.com/foozea/isana/board/stone"
 	. "github.com/foozea/isana/board/vertex"
-	. "github.com/foozea/isana/position"
+	. "github.com/foozea/isana/control"
 	. "github.com/foozea/isana/position/move"
+
+	"github.com/foozea/isana/engine"
 	"github.com/foozea/isana/protocol"
 )
-
-var (
-	Roots int
-)
-
-func init() {
-	Roots = 1
-}
 
 func protocol_version(args protocol.Args) {
 	fmt.Printf("= %v\n\n", PROTOCOL_VERSION)
 }
 
 func name(args protocol.Args) {
-	fmt.Printf("= %v\n\n", protocol.Engine.Name)
+	fmt.Printf("= %v\n\n", engine.Engine.Name)
 }
 
 func version(args protocol.Args) {
-	fmt.Printf("= %v\n\n", protocol.Engine.Version)
+	fmt.Printf("= %v\n\n", engine.Engine.Version)
 }
 
 func known_command(args protocol.Args) {
@@ -85,15 +78,15 @@ func boardsize(args protocol.Args) {
 	}
 	switch v {
 	case 9:
-		protocol.GameController.Size = B9x9
+		Observer.Size = B9x9
 	case 11:
-		protocol.GameController.Size = B11x11
+		Observer.Size = B11x11
 	case 13:
-		protocol.GameController.Size = B13x13
+		Observer.Size = B13x13
 	case 15:
-		protocol.GameController.Size = B15x15
+		Observer.Size = B15x15
 	case 19:
-		protocol.GameController.Size = B19x19
+		Observer.Size = B19x19
 	default:
 		fmt.Println("? unacceptable size\n")
 		return
@@ -102,7 +95,7 @@ func boardsize(args protocol.Args) {
 }
 
 func clear_board(args protocol.Args) {
-	protocol.GameController.ClearHistory()
+	Observer.ClearHistory()
 	fmt.Println("=\n")
 }
 
@@ -116,8 +109,8 @@ func komi(args protocol.Args) {
 		fmt.Println("? komi must be a float\n")
 		return
 	}
-	protocol.GameController.Komi = v
-	protocol.Engine.Komi = v
+	Observer.Komi = v
+	engine.Engine.Komi = v
 	fmt.Println("=\n")
 }
 
@@ -131,14 +124,14 @@ func play(args protocol.Args) {
 		fmt.Println("? invalid parameter(s)\n")
 		return
 	}
-	point := StringToVertex(args[1], protocol.GameController.Size)
+	point := StringToVertex(args[1], Observer.Size)
 	if point == Outbound { //pass
-		protocol.GameController.Pass()
+		Observer.Pass()
 		fmt.Println("=\n")
 		return
 	}
 	mv := CreateMove(stone, point)
-	ok := protocol.GameController.MakeMove(mv)
+	ok := Observer.MakeMove(mv)
 	if !ok {
 		fmt.Println("? illegal move\n")
 		return
@@ -160,29 +153,9 @@ func genmove(args protocol.Args) {
 		fmt.Println("= RESIGN\n")
 		return
 	}
-	pos := protocol.GameController.GetCurrentPosition()
-
-	// Root Parallelize
-	mvs := make([]Move, Roots)
-	var wg sync.WaitGroup
-	for i, _ := range mvs {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			copied := CopyPosition(pos)
-			mvs[i] = protocol.Engine.Think(&copied, stone)
-		}()
-	}
-	wg.Wait()
-
-	selected := mvs[0]
-	for _, v := range mvs {
-		if selected.Rate < v.Rate {
-			selected = v
-		}
-	}
-
-	ret := protocol.GameController.MakeMove(&selected)
+	pos := Observer.GetCurrentPosition()
+	selected := engine.Engine.Answer(pos, stone)
+	ret := Observer.MakeMove(&selected)
 	if !ret {
 		fmt.Printf("= PASS\n\n")
 		return
@@ -192,7 +165,7 @@ func genmove(args protocol.Args) {
 
 func showboard(args protocol.Args) {
 	fmt.Println("=\n")
-	pos := protocol.GameController.GetCurrentPosition()
+	pos := Observer.GetCurrentPosition()
 	pos.Dump()
 	pos.GoStringDump()
 	fmt.Printf("Black (X) : %v stones\n", pos.BlackPrison)
