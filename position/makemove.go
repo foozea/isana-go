@@ -65,14 +65,14 @@ func (pos *Position) PseudoMove(mv *Move) (next *Position, ok bool) {
 // if invalid move (it is illegal, suicide or filling own eye),
 // returns false as ok-code.
 func (pos *Position) PseudoMoveStrict(mv *Move) (next *Position, ok bool) {
-	if !pos.isLegalMove(mv) {
+	if !pos.isLegalMove(mv) || pos.isFillEyeMove(mv) {
 		return nil, false
 	}
 	test := CopyPosition(pos)
 	test.SetStone(mv.Stone, mv.Vertex)
 	test.CreateString(mv.Stone, mv.Vertex)
 	// strict mode
-	if test.isSuicideMove(mv, 1) || test.isFillEyeMove(mv) {
+	if test.isSuicideMove(mv, 1) {
 		return nil, false
 	}
 	return &test, true

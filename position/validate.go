@@ -20,6 +20,7 @@ package position
 
 import (
 	. "github.com/foozea/isana/board/stone"
+	. "github.com/foozea/isana/hashing"
 	. "github.com/foozea/isana/position/move"
 )
 
@@ -40,17 +41,10 @@ func (pos *Position) isLegalMove(move *Move) bool {
 
 // Determines if the move fills own eye.
 func (pos *Position) isFillEyeMove(move *Move) bool {
-	up, down, left, right :=
-		pos.GetStone(move.Vertex.Up()),
-		pos.GetStone(move.Vertex.Down()),
-		pos.GetStone(move.Vertex.Left()),
-		pos.GetStone(move.Vertex.Right())
-
-	if (up == move.Stone || up == Wall) && (down == move.Stone || down == Wall) &&
-		(right == move.Stone || right == Wall) && (left == move.Stone || left == Wall) {
-		if pos.CountLiberty(pos.GetString(move.Vertex)) > 1 {
-			return true
-		}
+	hash := pos.SquaredHash3(move.Vertex)
+	category := Patterns[hash]
+	if category != 0 && category == Eye {
+		return true
 	}
 	return false
 }

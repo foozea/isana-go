@@ -25,6 +25,7 @@ import (
 	. "github.com/foozea/isana/board/size"
 	. "github.com/foozea/isana/board/stone"
 	. "github.com/foozea/isana/board/vertex"
+	. "github.com/foozea/isana/hashing"
 	. "github.com/foozea/isana/position/move"
 )
 
@@ -46,8 +47,8 @@ type Position struct {
 	GoStringMap GoStringMap
 	GoStrings   GoStringIdentifier
 	///
-	Games         int
-	RaveGames     int
+	Games         int32
+	RaveGames     int32
 	Moves         []Move
 	ProbDencities [361]int
 	TotalProbs    int
@@ -91,6 +92,50 @@ func CopyPosition(pos *Position) Position {
 		0, [19]int{}}
 
 	return copied
+}
+
+// Gets the stone of the vertex.
+// It returns Wall for invalid vertex, and return s empty
+// if no stone is set at the vertex.
+func (pos *Position) GetStone(vx Vertex) Stone {
+	if !vx.IsValid() {
+		return Wall
+	}
+	if pos.blacks.GetBit(vx.Index) == 1 {
+		return Black
+	} else if pos.whites.GetBit(vx.Index) == 1 {
+		return White
+	} else {
+		return Empty
+	}
+}
+
+// Set the stone to the vertex.
+func (pos *Position) SetStone(stone Stone, vx Vertex) bool {
+	if !vx.IsValid() || stone == Wall {
+		return false
+	}
+	if stone == Black {
+		pos.blacks.SetBit(vx.Index)
+	} else if stone == White {
+		pos.whites.SetBit(vx.Index)
+	} else {
+		pos.blacks.ClearBit(vx.Index)
+		pos.whites.ClearBit(vx.Index)
+	}
+	return true
+}
+
+// Returns a slice of empty vertex
+func (pos *Position) Empties() []Vertex {
+	vs := make([]Vertex, 0)
+	bits := Or(pos.blacks, pos.whites)
+	for i := 0; i < pos.Size.Capacity(); i++ {
+		if bits.GetBit(i) == 0 {
+			vs = append(vs, Vertex{i, pos.Size})
+		}
+	}
+	return vs
 }
 
 // Counts liberty number of the GoString.
@@ -164,6 +209,24 @@ func (pos *Position) Score(stone Stone, komi float64) float64 {
 		return 1.0
 	}
 	return 0
+}
+
+// trim 3x3 square and returns the hash code.
+func (pos *Position) SquaredHash3(v Vertex) uint64 {
+	delta := func(arg Vertex) uint64 {
+		s := pos.GetStone(arg)
+		return DeltaHash[arg.Index<<2|int(s)]
+	}
+	// treats starting point as index '5'.
+	return delta(v.Down().Left()) ^ // 1
+		delta(v.Down()) ^ // 2
+		delta(v.Down().Right()) ^ // 3
+		delta(v.Left()) ^ // 4
+		delta(v) ^ // 5
+		delta(v.Right()) ^ // 6
+		delta(v.Up().Left()) ^ // 7
+		delta(v.Up()) ^ // 8
+		delta(v.Up().Right()) // 9
 }
 
 func (pos *Position) Dump() {

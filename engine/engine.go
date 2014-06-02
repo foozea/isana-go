@@ -20,6 +20,7 @@ package engine
 
 import (
 	"log"
+	"sync/atomic"
 
 	. "math"
 	. "math/rand"
@@ -50,11 +51,11 @@ type Isana struct {
 	Trials          int
 	factor          float64
 	maxPlayoutDepth int
-	minPlayout      int
+	minPlayout      int32
 }
 
 func createEngine() Isana {
-	return Isana{"", "", 0.0, 1, 0, 0.31, 0, 1}
+	return Isana{"", "", 0.0, 1, 0, 0.24, 0, 0}
 }
 
 // Optimistic negotiation between <Roots> number processes.
@@ -62,6 +63,9 @@ func createEngine() Isana {
 func (n *Isana) Answer(pos *Position, stone Stone) Move {
 
 	defer Un(Trace("Isana#Answer"))
+
+	n.maxPlayoutDepth = pos.Size.Capacity()
+	n.minPlayout = int32(float64(pos.Size.Capacity()) / 5.0)
 
 	// Root Parallelize
 	mvs := make([]Move, 0)
@@ -90,8 +94,6 @@ func (n *Isana) Answer(pos *Position, stone Stone) Move {
 // Parallelized for each trees, the shared memories must be locked.
 func (n *Isana) Think(pos *Position, s Stone) Move {
 
-	n.maxPlayoutDepth = int(Floor(float64(pos.Size.Capacity()) * 1.2))
-
 	// Tree parallelize
 	var wg WaitGroup
 	for i := 0; i < n.Trials; i++ {
@@ -103,7 +105,7 @@ func (n *Isana) Think(pos *Position, s Stone) Move {
 	}
 	wg.Wait()
 
-	selected, max := PassMove, -999
+	selected, max := PassMove, int32(-999)
 	for _, v := range pos.Moves {
 		//		log.Printf("%v: %1.5f(%v) Rave: %1.5f/%v",
 		//			v.String(), v.Rate, v.Games, v.RaveRate, v.RaveGames)
@@ -118,8 +120,8 @@ func (n *Isana) Think(pos *Position, s Stone) Move {
 // UCT recursively search the tree.
 // evaluation criteria is UCB1 with RAVE.
 func (n *Isana) UCT(pos *Position, s Stone) float64 {
-	maxUcb, selected := -999.0, pos.Size.Capacity()
-
+	selected := pos.Size.Capacity()
+	maxUcb := -999.0
 	// If moves-slice is empty, create all moves.
 	mutex.Lock()
 	if len(pos.Moves) == 0 {
@@ -133,6 +135,7 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 	mutex.Unlock()
 
 	for i, v := range pos.Moves {
+
 		if v != PassMove {
 			_, ok := pos.PseudoMoveStrict(&v)
 			if !ok {
@@ -161,8 +164,8 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 	}
 	next.FixMove(mv)
 	// Virtual Loss
-	mv.Games++
-	pos.Games++
+	atomic.AddInt32(&mv.Games, 1)
+	atomic.AddInt32(&pos.Games, 1)
 	//
 	win := 0.0
 	if mv.Games <= n.minPlayout {
@@ -207,17 +210,17 @@ func (n *Isana) playout(current *Position, stone Stone, parent *Position) float6
 		depth--
 	}
 	score := pos.Score(stone, n.Komi)
-	mutex.Lock()
 	for _, v := range vxs {
 		if s == Black && score == 0 || s == White && score == -1 {
+			mutex.Lock()
 			parent.Moves[v.Index].RaveRate =
 				(parent.Moves[v.Index].RaveRate*float64(parent.Moves[v.Index].RaveGames) + 1) /
 					float64(parent.Moves[v.Index].RaveGames+1)
+			mutex.Unlock()
 		}
-		parent.Moves[v.Index].RaveGames++
-		parent.RaveGames++
+		atomic.AddInt32(&parent.Moves[v.Index].RaveGames, 1)
+		atomic.AddInt32(&parent.RaveGames, 1)
 	}
-	mutex.Unlock()
 	return score
 }
 
@@ -230,7 +233,9 @@ func (n *Isana) Inspiration(pos *Position, s Stone) *Move {
 	i := pos.SearchProbIndex(Intn(pos.TotalProbs))
 	// set the probability to 0.
 	current := pos.ProbDencities[i] // keep the current value
+	mutex.Lock()
 	pos.UpdateProbs(i, 0)
+	mutex.Unlock()
 	mv := CreateMove(s, Vertex{i, pos.Size})
 	_, ok := pos.PseudoMoveStrict(mv)
 	if ok {
@@ -238,6 +243,8 @@ func (n *Isana) Inspiration(pos *Position, s Stone) *Move {
 	}
 	rec := n.Inspiration(pos, s)
 	// if skip this move, revert the probability.
+	mutex.Lock()
 	pos.UpdateProbs(i, current)
+	mutex.Unlock()
 	return rec
 }
