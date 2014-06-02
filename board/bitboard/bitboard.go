@@ -217,7 +217,6 @@ func Up(bits Bitboard, size BoardSize) Bitboard {
 		case B19x19:
 			calc[i] &= bitmask19u[i]
 		}
-
 	}
 	return calc
 }

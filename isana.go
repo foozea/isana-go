@@ -40,10 +40,10 @@ var (
 
 func init() {
 	// parse flags
-	flag.IntVar(&processNumber, "processes", runtime.NumCPU(), "process number")
-	flag.IntVar(&processNumber, "p", runtime.NumCPU(), "process number")
-	flag.IntVar(&parallelRoots, "roots", 3, "root parallelize number")
-	flag.IntVar(&parallelRoots, "r", 3, "root parallelize number")
+	flag.IntVar(&processNumber, "processes", runtime.NumCPU()*2, "process number")
+	flag.IntVar(&processNumber, "p", runtime.NumCPU()*2, "process number")
+	flag.IntVar(&parallelRoots, "roots", 1, "root parallelize number")
+	flag.IntVar(&parallelRoots, "r", 1, "root parallelize number")
 	flag.IntVar(&trialNumber, "trials", 3000, "uct trial number")
 	flag.IntVar(&trialNumber, "t", 3000, "uct trial number")
 	flag.Parse()

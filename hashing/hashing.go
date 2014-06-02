@@ -16,29 +16,30 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package move
+package hashing
 
 import (
-	"github.com/foozea/isana/board/stone"
-	"github.com/foozea/isana/board/vertex"
+	. "math/rand"
+	. "time"
+
+	. "github.com/foozea/isana/board/stone"
 )
 
-type Move struct {
-	Stone  stone.Stone
-	Vertex vertex.Vertex
-	///
-	Games     int32
-	Rate      float64
-	RaveGames int32
-	RaveRate  float64
+type DeltaHashType map[int]uint64
+
+var DeltaHash DeltaHashType
+
+func init() {
+	Seed(Now().UTC().UnixNano())
+	DeltaHash = createHash()
 }
 
-var PassMove Move = Move{stone.Empty, vertex.Outbound, 0, 0.0, 0, 0}
-
-func CreateMove(s stone.Stone, v vertex.Vertex) *Move {
-	return &Move{s, v, 0, 0.0, 0, 0}
-}
-
-func (m *Move) String() string {
-	return m.Vertex.String()
+// hash code for 3x3 patterns
+func createHash() DeltaHashType {
+	deltaHash := make(DeltaHashType, 0)
+	for i := 0; i < 9; i++ {
+		deltaHash[i<<2|int(Black)] = uint64(Uint32())<<32 | uint64(Uint32())
+		deltaHash[i<<2|int(White)] = uint64(Uint32())<<32 | uint64(Uint32())
+	}
+	return deltaHash
 }
