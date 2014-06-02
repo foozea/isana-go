@@ -24,6 +24,7 @@ import (
 
 type Stone uint
 
+// Definitions of the stones. (including wall)
 const (
 	Empty Stone = 0
 	Black Stone = 1
@@ -31,6 +32,7 @@ const (
 	Wall  Stone = 3
 )
 
+// Returns opposite side of the stone.
 func (s Stone) Opposite() Stone {
 	switch s {
 	case Black:
@@ -41,6 +43,7 @@ func (s Stone) Opposite() Stone {
 	return Empty
 }
 
+// Parses string and returns the Stone.
 func StringToStone(str string) Stone {
 	str = strings.ToUpper(str)
 	if str == "BLACK" || str == "B" {
@@ -55,6 +58,8 @@ func StringToStone(str string) Stone {
 	return Wall
 }
 
+// Implements stringer.
+// returns the string that is used to display a board.
 func (s Stone) String() string {
 	switch s {
 	case Empty:

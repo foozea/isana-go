@@ -35,6 +35,7 @@ type GoString struct {
 type GoStringMap [361]int
 type GoStringIdentifier [361](*GoString)
 
+// Gets GoString(Ren) object at the vertex.
 func (pos *Position) GetString(vx Vertex) (id int, str *GoString) {
 	if !vx.IsValid() {
 		return -1, nil
@@ -47,6 +48,8 @@ func (pos *Position) GetString(vx Vertex) (id int, str *GoString) {
 	return
 }
 
+// Creates and updates the GoString of the position.
+// (delta update)
 func (pos *Position) CreateString(s Stone, vx Vertex) int {
 	initialize := func(vertex Vertex) {
 		id, g := pos.GetString(vertex)
@@ -76,6 +79,8 @@ func (pos *Position) CreateString(s Stone, vx Vertex) int {
 	panic("number of go-strings overflow")
 }
 
+// Creates and updates the GoString of the position.
+// (fully update)
 func (pos *Position) UpdateStrings() {
 	for i, _ := range pos.GoStringMap {
 		pos.GoStringMap[i] = 0

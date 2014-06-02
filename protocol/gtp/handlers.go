@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package protocol
+package gtp
 
 import (
 	"fmt"
@@ -26,51 +26,47 @@ import (
 	. "github.com/foozea/isana/board/size"
 	. "github.com/foozea/isana/board/stone"
 	. "github.com/foozea/isana/board/vertex"
+	. "github.com/foozea/isana/control"
 	. "github.com/foozea/isana/position/move"
+
+	"github.com/foozea/isana/engine"
+	"github.com/foozea/isana/protocol"
 )
 
-type Args []string
-
-func (a *Args) Clear() {
-	*a = make(Args, 2)
-}
-
-type Handler func(Args)
-
-func protocol_version(args Args) {
+func protocol_version(args protocol.Args) {
 	fmt.Printf("= %v\n\n", PROTOCOL_VERSION)
 }
 
-func name(args Args) {
-	fmt.Printf("= %v\n\n", Engine.Name)
+func name(args protocol.Args) {
+	fmt.Printf("= %v\n\n", engine.Engine.Name)
 }
 
-func version(args Args) {
-	fmt.Printf("= %v\n\n", Engine.Version)
+func version(args protocol.Args) {
+	fmt.Printf("= %v\n\n", engine.Engine.Version)
 }
 
-func known_command(args Args) {
+func known_command(args protocol.Args) {
 	fmt.Print("= ")
 	if len(args) == 0 {
 		fmt.Println("false\n")
 	} else {
-		fmt.Printf("%v\n\n", Dispatcher.HasHandler(args[0]))
+		fmt.Printf("%v\n\n", protocol.Dispatcher.HasHandler(args[0]))
 	}
 }
 
-func list_commands(args Args) {
+func list_commands(args protocol.Args) {
 	fmt.Print("= ")
-	for k, _ := range Dispatcher {
+	for k, _ := range protocol.Dispatcher {
 		fmt.Println(k)
 	}
 	fmt.Printf("\n")
 }
 
-func quit(args Args) {
+func quit(args protocol.Args) {
 	os.Exit(0)
 }
 
-func boardsize(args Args) {
+func boardsize(args protocol.Args) {
 	if len(args) == 0 {
 		fmt.Println("? boardsize must be an integer\n")
 		return
@@ -82,15 +78,15 @@ func boardsize(args Args) {
 	}
 	switch v {
 	case 9:
-		GameController.Size = B9x9
+		Observer.Size = B9x9
 	case 11:
-		GameController.Size = B11x11
+		Observer.Size = B11x11
 	case 13:
-		GameController.Size = B13x13
+		Observer.Size = B13x13
 	case 15:
-		GameController.Size = B15x15
+		Observer.Size = B15x15
 	case 19:
-		GameController.Size = B19x19
+		Observer.Size = B19x19
 	default:
 		fmt.Println("? unacceptable size\n")
 		return
@@ -98,12 +94,12 @@ func boardsize(args Args) {
 	clear_board(args)
 }
 
-func clear_board(args Args) {
-	GameController.ClearHistory()
+func clear_board(args protocol.Args) {
+	Observer.ClearHistory()
 	fmt.Println("=\n")
 }
 
-func komi(args Args) {
+func komi(args protocol.Args) {
 	if len(args) == 0 {
 		fmt.Println("? komi must be a float\n")
 		return
@@ -113,12 +109,12 @@ func komi(args Args) {
 		fmt.Println("? komi must be a float\n")
 		return
 	}
-	GameController.Komi = v
-	Engine.Komi = v
+	Observer.Komi = v
+	engine.Engine.Komi = v
 	fmt.Println("=\n")
 }
 
-func play(args Args) {
+func play(args protocol.Args) {
 	if len(args) < 2 {
 		fmt.Println("? invalid parameter(s)\n")
 		return
@@ -128,14 +124,14 @@ func play(args Args) {
 		fmt.Println("? invalid parameter(s)\n")
 		return
 	}
-	point := StringToVertex(args[1], GameController.Size)
+	point := StringToVertex(args[1], Observer.Size)
 	if point == Outbound { //pass
-		GameController.Pass()
+		Observer.Pass()
 		fmt.Println("=\n")
 		return
 	}
 	mv := CreateMove(stone, point)
-	ok := GameController.MakeMove(mv)
+	ok := Observer.MakeMove(mv)
 	if !ok {
 		fmt.Println("? illegal move\n")
 		return
@@ -143,7 +139,7 @@ func play(args Args) {
 	fmt.Println("=\n")
 }
 
-func genmove(args Args) {
+func genmove(args protocol.Args) {
 	if len(args) == 0 {
 		fmt.Println("? invalid parameter(s)\n")
 		return
@@ -157,18 +153,19 @@ func genmove(args Args) {
 		fmt.Println("= RESIGN\n")
 		return
 	}
-	pos := GameController.GetCurrentPosition()
-	mv := Engine.Ponder(pos, stone)
-	ret := GameController.MakeMove(&mv)
+	pos := Observer.GetCurrentPosition()
+	selected := engine.Engine.Answer(pos, stone)
+	ret := Observer.MakeMove(&selected)
 	if !ret {
 		fmt.Printf("= PASS\n\n")
+		return
 	}
-	fmt.Printf("= %v\n\n", mv.String())
+	fmt.Printf("= %v\n\n", selected.String())
 }
 
-func showboard(args Args) {
+func showboard(args protocol.Args) {
 	fmt.Println("=\n")
-	pos := GameController.GetCurrentPosition()
+	pos := Observer.GetCurrentPosition()
 	pos.Dump()
 	pos.GoStringDump()
 	fmt.Printf("Black (X) : %v stones\n", pos.BlackPrison)

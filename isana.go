@@ -22,7 +22,7 @@ import (
 	"flag"
 	"runtime"
 
-	. "github.com/foozea/isana/protocol"
+	. "github.com/foozea/isana/engine"
 	"github.com/foozea/isana/protocol/gtp"
 )
 
@@ -33,21 +33,27 @@ const (
 )
 
 var (
-	parallel int
-	trial    int
+	processNumber int
+	parallelRoots int
+	trialNumber   int
 )
 
 func init() {
 	// parse flags
-	flag.IntVar(&parallel, "parallels", runtime.NumCPU(), "parallel number")
-	flag.IntVar(&trial, "trials", 2000, "uct trial number")
+	flag.IntVar(&processNumber, "processes", runtime.NumCPU(), "process number")
+	flag.IntVar(&processNumber, "p", runtime.NumCPU(), "process number")
+	flag.IntVar(&parallelRoots, "roots", 3, "root parallelize number")
+	flag.IntVar(&parallelRoots, "r", 3, "root parallelize number")
+	flag.IntVar(&trialNumber, "trials", 3000, "uct trial number")
+	flag.IntVar(&trialNumber, "t", 3000, "uct trial number")
 	flag.Parse()
 
-	runtime.GOMAXPROCS(parallel)
+	runtime.GOMAXPROCS(processNumber)
 
 	Engine.Name = name
 	Engine.Version = version
-	Engine.Trials = trial
+	Engine.Trials = trialNumber / parallelRoots
+	Engine.Roots = parallelRoots
 }
 
 func main() {

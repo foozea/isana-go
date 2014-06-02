@@ -18,67 +18,26 @@
 
 package protocol
 
-import (
-	. "github.com/foozea/isana/control"
-	. "github.com/foozea/isana/engine"
-)
-
+type Args []string
+type Handler func(Args)
 type Command string
 type CommandMap map[string]Handler
 
-const (
-	Protocol_version Command = "protocol_version"
-	Name             Command = "name"
-	Version          Command = "version"
-	Known_command    Command = "known_command"
-	List_commands    Command = "list_commands"
-	Quit             Command = "quit"
-	Boardsize        Command = "boardsize"
-	Clear_board      Command = "clear_board"
-	Komi             Command = "komi"
-	Play             Command = "play"
-	Genmove          Command = "genmove"
-	Showboard        Command = "showboard"
-)
-
-const (
-	PROTOCOL_VERSION int = 2
-	COMMANDS_COUNT   int = 10
-)
-
 var (
-	Engine          Isana
 	Dispatcher      CommandMap
 	ArgsForHandlers Args
-	GameController  GameState
 )
 
 func init() {
-	Engine = CreateEngine()
-
-	Dispatcher = make(map[string]Handler, COMMANDS_COUNT)
-	ArgsForHandlers = make(Args, 5)
-	GameController = CreateDefaultGameState()
-
-	// register handlers
-	Dispatcher.AddHandler(Protocol_version, protocol_version)
-	Dispatcher.AddHandler(Name, name)
-	Dispatcher.AddHandler(Version, version)
-	Dispatcher.AddHandler(Known_command, known_command)
-	Dispatcher.AddHandler(List_commands, list_commands)
-	Dispatcher.AddHandler(Boardsize, boardsize)
-	Dispatcher.AddHandler(Clear_board, clear_board)
-	Dispatcher.AddHandler(Komi, komi)
-	Dispatcher.AddHandler(Play, play)
-	Dispatcher.AddHandler(Genmove, genmove)
-	Dispatcher.AddHandler(Quit, quit)
-	Dispatcher.AddHandler(Showboard, showboard)
+	Dispatcher = make(map[string]Handler, 0)
 }
 
+// Add handler for the command(<key>)
 func (m CommandMap) AddHandler(key Command, handler func(Args)) {
 	m[key.String()] = Handler(handler)
 }
 
+// Determines if the CommandMap has a handler for the key.
 func (m CommandMap) HasHandler(key string) bool {
 	if m[key] != nil {
 		return true
@@ -86,6 +45,7 @@ func (m CommandMap) HasHandler(key string) bool {
 	return false
 }
 
+// Dispatch the command(<key>) to it's handler.
 func (m CommandMap) CallHandler(key string) {
 	h := m[key]
 	Handler(h)(ArgsForHandlers)

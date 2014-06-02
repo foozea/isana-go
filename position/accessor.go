@@ -24,6 +24,9 @@ import (
 	. "github.com/foozea/isana/board/vertex"
 )
 
+// Gets the stone of the vertex.
+// It returns Wall for invalid vertex, and return s empty
+// if no stone is set at the vertex.
 func (pos *Position) GetStone(vx Vertex) Stone {
 	if !vx.IsValid() {
 		return Wall
@@ -37,6 +40,7 @@ func (pos *Position) GetStone(vx Vertex) Stone {
 	}
 }
 
+// Set the stone to the vertex.
 func (pos *Position) SetStone(stone Stone, vx Vertex) bool {
 	if !vx.IsValid() || stone == Wall {
 		return false
@@ -52,6 +56,7 @@ func (pos *Position) SetStone(stone Stone, vx Vertex) bool {
 	return true
 }
 
+// Returns a slice of empty vertex
 func (pos *Position) Empties() []Vertex {
 	vs := make([]Vertex, 0)
 	bits := Or(pos.blacks, pos.whites)

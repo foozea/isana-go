@@ -28,7 +28,11 @@ import (
 	. "github.com/foozea/isana/position/move"
 )
 
+// Go-Board struct.
+// This is also keep various information for tree serch.
 type Position struct {
+	hash uint64
+	///
 	blacks Bitboard
 	whites Bitboard
 	Size   BoardSize
@@ -43,14 +47,17 @@ type Position struct {
 	GoStrings   GoStringIdentifier
 	///
 	Games         int
+	RaveGames     int
 	Moves         []Move
 	ProbDencities [361]int
 	TotalProbs    int
 	SubTotalProbs [19]int
 }
 
+// Returns empty Go-board.
 func CreatePosition(size BoardSize) Position {
 	return Position{
+		0x0,
 		Bitboard{},
 		Bitboard{},
 		size,
@@ -59,14 +66,16 @@ func CreatePosition(size BoardSize) Position {
 		0, 0,
 		GoStringMap{},
 		GoStringIdentifier{},
-		0.0,
+		0, 0,
 		make([]Move, 0),
 		[361]int{},
 		0, [19]int{}}
 }
 
+// Copies the Go-board.
 func CopyPosition(pos *Position) Position {
 	copied := Position{
+		pos.hash,
 		pos.blacks,
 		pos.whites,
 		pos.Size,
@@ -76,7 +85,7 @@ func CopyPosition(pos *Position) Position {
 		pos.WhitePrison,
 		pos.GoStringMap,
 		pos.GoStrings,
-		0.0,
+		0, 0,
 		make([]Move, 0),
 		[361]int{},
 		0, [19]int{}}
@@ -84,7 +93,8 @@ func CopyPosition(pos *Position) Position {
 	return copied
 }
 
-func (pos *Position) CountStringLiberty(id int, g *GoString) int {
+// Counts liberty number of the GoString.
+func (pos *Position) CountLiberty(id int, g *GoString) int {
 	// outbound of the board
 	if id < 0 {
 		return 0
@@ -109,12 +119,17 @@ func (pos *Position) CountStringLiberty(id int, g *GoString) int {
 	return n.CountBit() - m.CountBit()
 }
 
+// Counts the score of the position.
+// - black wins => 1
+//   black loses => 0
+//   white wins => 0
+//   white loses => -1
 func (pos *Position) Score(stone Stone, komi float64) float64 {
 	score := 0
 	for id, v := range pos.GoStrings {
 		if v != nil {
 			delta := 0
-			if pos.CountStringLiberty(id, v) > 1 {
+			if pos.CountLiberty(id, v) > 1 {
 				delta = v.Value.CountBit()
 			}
 			if v.Stone == Black {

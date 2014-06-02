@@ -30,6 +30,7 @@ func init() {
 	Seed(Now().UTC().UnixNano())
 }
 
+// Creates probability densities for random move generation.
 func (pos *Position) CreateProbs() {
 	pos.TotalProbs = 0
 	subtotal := 0
@@ -50,6 +51,7 @@ func (pos *Position) CreateProbs() {
 	}
 }
 
+// Selects a index with the value (assumed random number).
 func (pos *Position) SearchProbIndex(value int) int {
 	var selected, v int
 	for selected, v = range pos.SubTotalProbs {
@@ -71,6 +73,7 @@ func (pos *Position) SearchProbIndex(value int) int {
 	return pos.ProbDencities[pos.Size.Capacity()-1]
 }
 
+// Update probability densities.
 func (pos *Position) UpdateProbs(key int, value int) {
 	current := pos.ProbDencities[key]
 	delta := value - current

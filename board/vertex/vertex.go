@@ -30,22 +30,27 @@ type Vertex struct {
 	Size  BoardSize
 }
 
+// Out of the board.
 var Outbound = Vertex{-1, BoardSize(0)}
 
+// Determines if the vertex is valid for the board size.
 func (vx Vertex) IsValid() bool {
 	return vx.Size.Capacity() > vx.Index && vx.Index >= 0
 }
 
+// Returns the neighbour vertex. (Up-side)
 func (vx Vertex) Up() Vertex {
 	v := vx.Index + int(vx.Size)
 	return Vertex{v, vx.Size}
 }
 
+// Returns the neighbour vertex. (Down-side)
 func (vx Vertex) Down() Vertex {
 	v := vx.Index - int(vx.Size)
 	return Vertex{v, vx.Size}
 }
 
+// Returns the neighbour vertex. (Left-side)
 func (vx Vertex) Left() Vertex {
 	if vx == Outbound || vx.Index%int(vx.Size) == 0 {
 		return Outbound
@@ -54,6 +59,7 @@ func (vx Vertex) Left() Vertex {
 	return Vertex{v, vx.Size}
 }
 
+// Returns the neighbour vertex. (Right-side)
 func (vx Vertex) Right() Vertex {
 	if vx == Outbound || vx.Index%int(vx.Size) == int(vx.Size)-1 {
 		return Outbound
@@ -62,24 +68,7 @@ func (vx Vertex) Right() Vertex {
 	return Vertex{v, vx.Size}
 }
 
-func (vx Vertex) String() string {
-	if int(vx.Size) == 0 {
-		return "PASS"
-	}
-	file := vx.Index % int(vx.Size)
-	rank := vx.Index / int(vx.Size)
-	if vx != Outbound {
-		f := string('A' + file)
-		if f == "I" {
-			f = "J"
-		}
-		r := strconv.Itoa(rank + 1)
-		return f + r
-	} else {
-		return "PASS"
-	}
-}
-
+// Parses string and returns vertex.
 func StringToVertex(str string, size BoardSize) Vertex {
 	str = strings.ToUpper(str)
 	if len(str) < 2 || str == "PASS" {
@@ -97,4 +86,25 @@ func StringToVertex(str string, size BoardSize) Vertex {
 		}
 	}
 	return Outbound
+}
+
+// Implements stringer.
+// returns the string that represents vertex. it is used to
+// communicate with human or other programs.
+func (vx Vertex) String() string {
+	if int(vx.Size) == 0 {
+		return "PASS"
+	}
+	file := vx.Index % int(vx.Size)
+	rank := vx.Index / int(vx.Size)
+	if vx != Outbound {
+		f := string('A' + file)
+		if f == "I" {
+			f = "J"
+		}
+		r := strconv.Itoa(rank + 1)
+		return f + r
+	} else {
+		return "PASS"
+	}
 }
