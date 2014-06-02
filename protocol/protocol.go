@@ -32,10 +32,12 @@ func init() {
 	Dispatcher = make(map[string]Handler, 0)
 }
 
+// Add handler for the command(<key>)
 func (m CommandMap) AddHandler(key Command, handler func(Args)) {
 	m[key.String()] = Handler(handler)
 }
 
+// Determines if the CommandMap has a handler for the key.
 func (m CommandMap) HasHandler(key string) bool {
 	if m[key] != nil {
 		return true
@@ -43,6 +45,7 @@ func (m CommandMap) HasHandler(key string) bool {
 	return false
 }
 
+// Dispatch the command(<key>) to it's handler.
 func (m CommandMap) CallHandler(key string) {
 	h := m[key]
 	Handler(h)(ArgsForHandlers)

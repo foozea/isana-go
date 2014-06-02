@@ -25,9 +25,10 @@ import (
 	. "github.com/foozea/isana/position/move"
 )
 
+// Take stones these are `DEAD`.
 func (pos *Position) TakeStone(stone Stone, vx Vertex) int {
 	id, g := pos.GetString(vx)
-	if g == nil || g.Stone != stone || pos.CountStringLiberty(id, g) != 0 {
+	if g == nil || g.Stone != stone || pos.CountLiberty(id, g) != 0 {
 		return 0
 	}
 	prisoners := g.Value.CountBit()
@@ -45,6 +46,8 @@ func (pos *Position) TakeStone(stone Stone, vx Vertex) int {
 	return prisoners
 }
 
+// Make pseudo move and validate it.
+// if invalid move (it is illegal, or suicide), returns false as ok-code.
 func (pos *Position) PseudoMove(mv *Move) (next *Position, ok bool) {
 	if !pos.isLegalMove(mv) {
 		return nil, false
@@ -58,6 +61,9 @@ func (pos *Position) PseudoMove(mv *Move) (next *Position, ok bool) {
 	return &test, true
 }
 
+// Make pseudo move and validate it.
+// if invalid move (it is illegal, suicide or filling own eye),
+// returns false as ok-code.
 func (pos *Position) PseudoMoveStrict(mv *Move) (next *Position, ok bool) {
 	if !pos.isLegalMove(mv) {
 		return nil, false
@@ -72,6 +78,8 @@ func (pos *Position) PseudoMoveStrict(mv *Move) (next *Position, ok bool) {
 	return &test, true
 }
 
+// Make a move. If the neighbours are DEAD, take it and add them to prison.
+// if it is Ko, memory it.
 func (pos *Position) FixMove(move *Move) {
 	pos.SetStone(move.Stone, move.Vertex)
 	opp, v := move.Stone.Opposite(), move.Vertex

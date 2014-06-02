@@ -73,6 +73,9 @@ func scan() string {
 	return scanner.Text()
 }
 
+// Start the GTP mode.
+// it wait for input from the console.
+// SIGHUP(Ctrl+c) is obviously handled by goroutine.
 func Start() {
 
 	c := make(chan os.Signal, 1)

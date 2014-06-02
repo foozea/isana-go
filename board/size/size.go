@@ -20,6 +20,7 @@ package size
 
 type BoardSize uint
 
+// Definitions of the board-sizes.
 const (
 	B9x9   BoardSize = 9
 	B11x11 BoardSize = 11
@@ -28,6 +29,7 @@ const (
 	B19x19 BoardSize = 19
 )
 
+// Returns the vertex count that can be set a stone.
 func (size BoardSize) Capacity() int {
 	switch size {
 	case B9x9:

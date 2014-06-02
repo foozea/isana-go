@@ -22,8 +22,13 @@ import (
 	. "github.com/foozea/isana/board/size"
 )
 
+// Type: bitboard
+// this is the backend structure of Go-board.
 type Bitboard [6]uint64
 
+// Bitmasks that restricts the range of bit-shift.
+// these are used in:
+//   - Left, Right, Up, Down
 var (
 	bitmask9l = Bitboard{
 		0xbfdfeff7fbfdfeff, 0xff7f, 0x0, 0x0, 0x0, 0x0}
@@ -67,24 +72,28 @@ var (
 		0xffffffffffffffff, 0xffffffffffffffff, 0x1ffffffffff}
 )
 
+// Gets a bit of the index.
 func (b *Bitboard) GetBit(index int) int {
 	sidx := index / 64 // slice index
 	bidx := index % 64 // bit index
 	return int((*b)[sidx]>>uint(bidx)) & 0x1
 }
 
+// Set a bit of the index.
 func (b *Bitboard) SetBit(index int) {
 	sidx := index / 64 // slice index
 	bidx := index % 64 // bit index
 	(*b)[sidx] |= uint64(0x1 << uint(bidx))
 }
 
+// Clears a bit of the index.
 func (b *Bitboard) ClearBit(index int) {
 	sidx := index / 64 // slice index
 	bidx := index % 64 // bit index
 	(*b)[sidx] &= ^(0x1 << uint(bidx))
 }
 
+// Counts the bit number that set on the board.
 func (b *Bitboard) CountBit() int {
 	ret := 0
 	for _, v := range *b {
@@ -97,6 +106,7 @@ func (b *Bitboard) CountBit() int {
 	return ret
 }
 
+// Bit-wize operation: `AND`
 func And(lhs Bitboard, rhs ...Bitboard) Bitboard {
 	calc := Bitboard{}
 	for i, v := range lhs {
@@ -108,6 +118,7 @@ func And(lhs Bitboard, rhs ...Bitboard) Bitboard {
 	return calc
 }
 
+// Bit-wize operation: `OR`
 func Or(lhs Bitboard, rhs ...Bitboard) Bitboard {
 	calc := Bitboard{}
 	for i, v := range lhs {
@@ -119,6 +130,7 @@ func Or(lhs Bitboard, rhs ...Bitboard) Bitboard {
 	return calc
 }
 
+// Bit-wize operation: `XOR`
 func Xor(lhs Bitboard, rhs ...Bitboard) Bitboard {
 	calc := Bitboard{}
 	for i, v := range lhs {
@@ -130,6 +142,7 @@ func Xor(lhs Bitboard, rhs ...Bitboard) Bitboard {
 	return calc
 }
 
+// Bit-wize operation: `NOT`
 func Not(bits Bitboard) Bitboard {
 	calc := Bitboard{}
 	for i, v := range bits {
@@ -138,6 +151,8 @@ func Not(bits Bitboard) Bitboard {
 	return calc
 }
 
+// One-bit left shift. the shift size is constant but
+// the result is masked with the bits that depends on the board-size.
 func Left(bits Bitboard, size BoardSize) Bitboard {
 	_1, _2, _3, _4, _5 := bits[1]<<63, bits[2]<<63, bits[3]<<63, bits[4]<<63, bits[5]>>63
 	calc := Bitboard{_1, _2, _3, _4, _5, 0x0}
@@ -159,6 +174,8 @@ func Left(bits Bitboard, size BoardSize) Bitboard {
 	return calc
 }
 
+// One-bit right shift. the shift size is constant but
+// the result is masked with the bits that depends on the board-size.
 func Right(bits Bitboard, size BoardSize) Bitboard {
 	_0, _1, _2, _3, _4 := bits[0]>>63, bits[1]>>63, bits[2]>>63, bits[3]>>63, bits[4]>>63
 	calc := Bitboard{0x0, _0, _1, _2, _3, _4}
@@ -180,6 +197,8 @@ func Right(bits Bitboard, size BoardSize) Bitboard {
 	return calc
 }
 
+// One-bit up shift (<line-size> bit left shift).
+// the result is masked with the bits that depends on the board-size.
 func Up(bits Bitboard, size BoardSize) Bitboard {
 	m := 64 - uint(size)
 	_0, _1, _2, _3, _4 := bits[0]>>m, bits[1]>>m, bits[2]>>m, bits[3]>>m, bits[4]>>m
@@ -203,6 +222,8 @@ func Up(bits Bitboard, size BoardSize) Bitboard {
 	return calc
 }
 
+// One-bit up shift (<line-size> bit right shift).
+// the result is masked with the bits that depends on the board-size.
 func Down(bits Bitboard, size BoardSize) Bitboard {
 	m := 64 - uint(size)
 	_1, _2, _3, _4, _5 := bits[1]<<m, bits[2]<<m, bits[3]<<m, bits[4]<<m, bits[5]>>m

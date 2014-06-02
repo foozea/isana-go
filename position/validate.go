@@ -25,6 +25,7 @@ import (
 
 /// Validations for PseudoMove
 
+// Determines if the move is valid or not.
 func (pos *Position) isLegalMove(move *Move) bool {
 	// 1. if it is not empty, returns false
 	if pos.GetStone(move.Vertex) != Empty {
@@ -37,6 +38,7 @@ func (pos *Position) isLegalMove(move *Move) bool {
 	return true
 }
 
+// Determines if the move fills own eye.
 func (pos *Position) isFillEyeMove(move *Move) bool {
 	up, down, left, right :=
 		pos.GetStone(move.Vertex.Up()),
@@ -46,28 +48,30 @@ func (pos *Position) isFillEyeMove(move *Move) bool {
 
 	if (up == move.Stone || up == Wall) && (down == move.Stone || down == Wall) &&
 		(right == move.Stone || right == Wall) && (left == move.Stone || left == Wall) {
-		if pos.CountStringLiberty(pos.GetString(move.Vertex)) > 1 {
+		if pos.CountLiberty(pos.GetString(move.Vertex)) > 1 {
 			return true
 		}
 	}
 	return false
 }
 
+// Determines if the move is suicide or not.
+// <border> is the border number to evaluate whether the move is suicide.
 func (pos *Position) isSuicideMove(move *Move, border int) bool {
 	stone := move.Stone
 	vx := move.Vertex
 	// 1. check the tempolary position and if the stone is not dead,
 	//    it is not suicide move.
-	if pos.CountStringLiberty(pos.GetString(vx)) > border {
+	if pos.CountLiberty(pos.GetString(vx)) > border {
 		return false
 	}
 	// 2. if the move can take opponent stone(s), not suicide.
 	up, down, left, right := vx.Up(), vx.Down(), vx.Left(), vx.Right()
 	opp := stone.Opposite()
-	if (pos.GetStone(left) == opp && pos.CountStringLiberty(pos.GetString(left)) == 0) ||
-		(pos.GetStone(right) == opp && pos.CountStringLiberty(pos.GetString(right)) == 0) ||
-		(pos.GetStone(up) == opp && pos.CountStringLiberty(pos.GetString(up)) == 0) ||
-		(pos.GetStone(down) == opp && pos.CountStringLiberty(pos.GetString(down)) == 0) {
+	if (pos.GetStone(left) == opp && pos.CountLiberty(pos.GetString(left)) == 0) ||
+		(pos.GetStone(right) == opp && pos.CountLiberty(pos.GetString(right)) == 0) ||
+		(pos.GetStone(up) == opp && pos.CountLiberty(pos.GetString(up)) == 0) ||
+		(pos.GetStone(down) == opp && pos.CountLiberty(pos.GetString(down)) == 0) {
 		return false
 	}
 	// 3. else, suicide move.

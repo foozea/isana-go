@@ -33,13 +33,15 @@ import (
 	. "github.com/foozea/isana/position/move"
 )
 
-var mutex = &Mutex{}
 var Engine = createEngine()
+var mutex = &Mutex{}
 
 func init() {
 	Seed(Now().UTC().UnixNano())
 }
 
+// Implemented with Monte-Carlo tree search with RAVE.
+// parallelized: root, tree
 type Isana struct {
 	Name            string
 	Version         string
@@ -55,6 +57,8 @@ func createEngine() Isana {
 	return Isana{"", "", 0.0, 1, 0, 0.31, 0, 1}
 }
 
+// Optimistic negotiation between <Roots> number processes.
+// the criterion is the game count that the move is selected.
 func (n *Isana) Answer(pos *Position, stone Stone) Move {
 
 	defer Un(Trace("Isana#Answer"))
@@ -82,6 +86,8 @@ func (n *Isana) Answer(pos *Position, stone Stone) Move {
 	return selected
 }
 
+// Main logic for search trees.
+// Parallelized for each trees, the shared memories must be locked.
 func (n *Isana) Think(pos *Position, s Stone) Move {
 
 	n.maxPlayoutDepth = int(Floor(float64(pos.Size.Capacity()) * 1.2))
@@ -109,6 +115,8 @@ func (n *Isana) Think(pos *Position, s Stone) Move {
 	return selected
 }
 
+// UCT recursively search the tree.
+// evaluation criteria is UCB1 with RAVE.
 func (n *Isana) UCT(pos *Position, s Stone) float64 {
 	maxUcb, selected := -999.0, pos.Size.Capacity()
 
@@ -152,7 +160,10 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 		next = pos
 	}
 	next.FixMove(mv)
-	mv.Games++ // Virtual Loss
+	// Virtual Loss
+	mv.Games++
+	pos.Games++
+	//
 	win := 0.0
 	if mv.Games <= n.minPlayout {
 		win -= n.playout(next, s.Opposite(), pos)
@@ -161,12 +172,12 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 	}
 	mutex.Lock()
 	mv.Rate = (mv.Rate*float64(mv.Games-1) + win) / float64(mv.Games)
-	pos.Games++
 	mutex.Unlock()
 
 	return win
 }
 
+// Playout function.
 func (n *Isana) playout(current *Position, stone Stone, parent *Position) float64 {
 	// Initialize probability dencities
 	pos := CopyPosition(current)
@@ -210,6 +221,7 @@ func (n *Isana) playout(current *Position, stone Stone, parent *Position) float6
 	return score
 }
 
+// Returns the random move.
 func (n *Isana) Inspiration(pos *Position, s Stone) *Move {
 	if pos.TotalProbs <= 0 {
 		return &PassMove
