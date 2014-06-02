@@ -29,6 +29,8 @@ import (
 )
 
 type Position struct {
+	hash uint64
+	///
 	blacks Bitboard
 	whites Bitboard
 	Size   BoardSize
@@ -43,6 +45,7 @@ type Position struct {
 	GoStrings   GoStringIdentifier
 	///
 	Games         int
+	RaveGames     int
 	Moves         []Move
 	ProbDencities [361]int
 	TotalProbs    int
@@ -51,6 +54,7 @@ type Position struct {
 
 func CreatePosition(size BoardSize) Position {
 	return Position{
+		0x0,
 		Bitboard{},
 		Bitboard{},
 		size,
@@ -59,7 +63,7 @@ func CreatePosition(size BoardSize) Position {
 		0, 0,
 		GoStringMap{},
 		GoStringIdentifier{},
-		0.0,
+		0, 0,
 		make([]Move, 0),
 		[361]int{},
 		0, [19]int{}}
@@ -67,6 +71,7 @@ func CreatePosition(size BoardSize) Position {
 
 func CopyPosition(pos *Position) Position {
 	copied := Position{
+		pos.hash,
 		pos.blacks,
 		pos.whites,
 		pos.Size,
@@ -76,7 +81,7 @@ func CopyPosition(pos *Position) Position {
 		pos.WhitePrison,
 		pos.GoStringMap,
 		pos.GoStrings,
-		0.0,
+		0, 0,
 		make([]Move, 0),
 		[361]int{},
 		0, [19]int{}}

@@ -29,6 +29,44 @@ import (
 	. "github.com/foozea/isana/protocol"
 )
 
+const (
+	Protocol_version Command = "protocol_version"
+	Name             Command = "name"
+	Version          Command = "version"
+	Known_command    Command = "known_command"
+	List_commands    Command = "list_commands"
+	Quit             Command = "quit"
+	Boardsize        Command = "boardsize"
+	Clear_board      Command = "clear_board"
+	Komi             Command = "komi"
+	Play             Command = "play"
+	Genmove          Command = "genmove"
+	Showboard        Command = "showboard"
+)
+
+const (
+	PROTOCOL_VERSION int = 2
+	COMMANDS_COUNT   int = 10
+)
+
+func init() {
+	ArgsForHandlers = make(Args, 5)
+
+	// register handlers
+	Dispatcher.AddHandler(Protocol_version, protocol_version)
+	Dispatcher.AddHandler(Name, name)
+	Dispatcher.AddHandler(Version, version)
+	Dispatcher.AddHandler(Known_command, known_command)
+	Dispatcher.AddHandler(List_commands, list_commands)
+	Dispatcher.AddHandler(Boardsize, boardsize)
+	Dispatcher.AddHandler(Clear_board, clear_board)
+	Dispatcher.AddHandler(Komi, komi)
+	Dispatcher.AddHandler(Play, play)
+	Dispatcher.AddHandler(Genmove, genmove)
+	Dispatcher.AddHandler(Quit, quit)
+	Dispatcher.AddHandler(Showboard, showboard)
+}
+
 func scan() string {
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()

@@ -45,6 +45,19 @@ func (pos *Position) TakeStone(stone Stone, vx Vertex) int {
 	return prisoners
 }
 
+func (pos *Position) PseudoMove(mv *Move) (next *Position, ok bool) {
+	if !pos.isLegalMove(mv) {
+		return nil, false
+	}
+	test := CopyPosition(pos)
+	test.SetStone(mv.Stone, mv.Vertex)
+	test.CreateString(mv.Stone, mv.Vertex)
+	if test.isSuicideMove(mv, 0) {
+		return nil, false
+	}
+	return &test, true
+}
+
 func (pos *Position) PseudoMoveStrict(mv *Move) (next *Position, ok bool) {
 	if !pos.isLegalMove(mv) {
 		return nil, false
@@ -54,19 +67,6 @@ func (pos *Position) PseudoMoveStrict(mv *Move) (next *Position, ok bool) {
 	test.CreateString(mv.Stone, mv.Vertex)
 	// strict mode
 	if test.isSuicideMove(mv, 1) || test.isFillEyeMove(mv) {
-		return nil, false
-	}
-	return &test, true
-}
-
-func (pos *Position) PseudoMove(mv *Move) (next *Position, ok bool) {
-	if !pos.isLegalMove(mv) {
-		return nil, false
-	}
-	test := CopyPosition(pos)
-	test.SetStone(mv.Stone, mv.Vertex)
-	test.CreateString(mv.Stone, mv.Vertex)
-	if test.isSuicideMove(mv, 0) {
 		return nil, false
 	}
 	return &test, true
