@@ -88,8 +88,9 @@ func CopyPosition(pos *Position) Position {
 		pos.GoStrings,
 		0, 0,
 		make([]Move, 0),
-		[361]int{},
-		0, [19]int{}}
+		pos.ProbDencities,
+		pos.TotalProbs,
+		pos.SubTotalProbs}
 
 	return copied
 }
@@ -212,21 +213,48 @@ func (pos *Position) Score(stone Stone, komi float64) float64 {
 }
 
 // trim 3x3 square and returns the hash code.
-func (pos *Position) SquaredHash3(v Vertex) uint64 {
-	delta := func(arg Vertex) uint64 {
+func (pos *Position) SquaredHash3x3(v Vertex) uint64 {
+	if !v.IsValid() {
+		return 0
+	}
+	delta := func(arg Vertex, i int) uint64 {
 		s := pos.GetStone(arg)
-		return DeltaHash[arg.Index<<2|int(s)]
+		return Hashboard[i<<2|int(s)]
 	}
 	// treats starting point as index '5'.
-	return delta(v.Down().Left()) ^ // 1
-		delta(v.Down()) ^ // 2
-		delta(v.Down().Right()) ^ // 3
-		delta(v.Left()) ^ // 4
-		delta(v) ^ // 5
-		delta(v.Right()) ^ // 6
-		delta(v.Up().Left()) ^ // 7
-		delta(v.Up()) ^ // 8
-		delta(v.Up().Right()) // 9
+	return delta(v.Down().Left(), 1) ^ // 1
+		delta(v.Down(), 2) ^ // 2
+		delta(v.Down().Right(), 3) ^ // 3
+		delta(v.Left(), 4) ^ // 4
+		delta(v, 5) ^ // 5
+		delta(v.Right(), 6) ^ // 6
+		delta(v.Up().Left(), 7) ^ // 7
+		delta(v.Up(), 8) ^ // 8
+		delta(v.Up().Right(), 9) // 9
+}
+
+// trim 3x3 square and returns the hash code.
+func (pos *Position) SquaredHash3x2(v Vertex) (_1 uint64, _2 uint64) {
+	if !v.IsValid() {
+		return 0, 0
+	}
+	delta := func(arg Vertex, i int) uint64 {
+		s := pos.GetStone(arg)
+		return Hashboard[i<<2|int(s)]
+	}
+	_1 = delta(v.Down().Left(), 1) ^ // 1
+		delta(v.Down(), 2) ^ // 2
+		delta(v.Down().Right(), 3) ^ // 3
+		delta(v.Left(), 4) ^ // 4
+		delta(v, 5) ^ // 5
+		delta(v.Right(), 6) // 6
+	_2 = delta(v.Left(), 4) ^ // 4
+		delta(v, 5) ^ // 5
+		delta(v.Right(), 6) ^ // 6
+		delta(v.Up().Left(), 7) ^ // 7
+		delta(v.Up(), 8) ^ // 8
+		delta(v.Up().Right(), 9) // 9
+	return _1, _2
 }
 
 func (pos *Position) Dump() {

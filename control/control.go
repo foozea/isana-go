@@ -27,11 +27,13 @@ import (
 )
 
 type GameState struct {
-	Size    BoardSize
-	Current *Position
-	Turn    Stone
-	Komi    float64
-	Times   TimeSettings
+	Size        BoardSize
+	History     []*Position
+	MoveHistory []*Move
+	TurnCount   int
+	Turn        Stone
+	Komi        float64
+	Times       TimeSettings
 }
 
 type TimeSettings struct {
@@ -45,15 +47,22 @@ var Observer = createDefaultGameState()
 func createDefaultGameState() GameState {
 	komi := 0.0
 	timeset := TimeSettings{60, 600, 25}
-	return GameState{B9x9, nil, Empty, komi, timeset}
+	return GameState{B9x9, make([]*Position, 0), make([]*Move, 0), 0, Empty, komi, timeset}
 }
 
 func (s *GameState) GetCurrentPosition() *Position {
-	if s.Turn == Empty {
+	if s.TurnCount == 0 {
 		pos := CreatePosition(s.Size)
 		return &pos
 	}
-	return s.Current
+	return s.History[s.TurnCount-1]
+}
+
+func (s *GameState) GetLastMove() *Move {
+	if s.TurnCount == 0 {
+		return &PassMove
+	}
+	return s.MoveHistory[s.TurnCount-1]
 }
 
 func (s *GameState) CurrentStoneIs() Stone {
@@ -67,7 +76,9 @@ func (s *GameState) MakeMove(move *Move) bool {
 		return false
 	}
 	next.FixMove(move)
-	s.Current = next
+	s.History = append(s.History, next)
+	s.MoveHistory = append(s.MoveHistory, move)
+	s.TurnCount++
 	s.Turn = move.Stone
 	return true
 }
@@ -76,11 +87,15 @@ func (s *GameState) Pass() {
 	current := s.GetCurrentPosition()
 	next := CopyPosition(current)
 	next.Ko, next.KoStone = Outbound, Empty
-	s.Current = &next
+	s.History = append(s.History, &next)
+	s.MoveHistory = append(s.MoveHistory, &PassMove)
+	s.TurnCount++
 	s.Turn = s.Turn.Opposite()
 }
 
 func (s *GameState) ClearHistory() {
-	s.Current = nil
+	s.History = make([]*Position, 0)
+	s.MoveHistory = make([]*Move, 0)
+	s.TurnCount = 0
 	s.Turn = Empty
 }

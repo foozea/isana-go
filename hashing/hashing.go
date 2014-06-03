@@ -25,21 +25,21 @@ import (
 	. "github.com/foozea/isana/board/stone"
 )
 
-type DeltaHashType map[int]uint64
+type HashboardType map[int]uint64
 
-var DeltaHash DeltaHashType
+var Hashboard HashboardType
 
 func init() {
 	Seed(Now().UTC().UnixNano())
-	DeltaHash = createHash()
+	Hashboard = createHash()
 }
 
 // hash code for 3x3 patterns
-func createHash() DeltaHashType {
-	deltaHash := make(DeltaHashType, 0)
+func createHash() HashboardType {
+	hash := make(HashboardType, 0)
 	for i := 0; i < 9; i++ {
-		deltaHash[i<<2|int(Black)] = uint64(Uint32())<<32 | uint64(Uint32())
-		deltaHash[i<<2|int(White)] = uint64(Uint32())<<32 | uint64(Uint32())
+		hash[i<<2|int(Black)] = uint64(Uint32())<<32 | uint64(Uint32())
+		hash[i<<2|int(White)] = uint64(Uint32())<<32 | uint64(Uint32())
 	}
-	return deltaHash
+	return hash
 }
