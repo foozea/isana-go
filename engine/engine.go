@@ -135,27 +135,21 @@ func (n *Isana) UCT(pos *Position, s Stone, last *Move, playouts *int32) float64
 		// Add pass
 		pos.Moves = append(pos.Moves, PassMove)
 	}
-	pos.CreateProbs()
 	mutex.Unlock()
 
+	force := false
 	lv := last.Vertex
 	directions := []Vertex{lv.Up(), lv.Down(), lv.Left(), lv.Right(),
 		lv.Up().Left(), lv.Up().Right(), lv.Down().Left(), lv.Down().Right()}
-
-	force := false
 	if last.Vertex != Outbound {
 		for _, v := range directions {
 			if pos.GetStone(v) == Empty {
 				break
 			}
-			hash := pos.SquaredHash3x3(v)
-			if Patterns[hash] == Force {
-				selected = v.Index
-				force = true
-				break
-			}
-			hash1, hash2 := pos.SquaredHash3x2(v)
-			if Patterns[hash1] == Force || Patterns[hash2] == Force {
+			hash1 := pos.SquaredHash3x3(v)
+			if HanePatterns[hash1] == Force ||
+				KiriPatterns[hash1] == Force ||
+				EdgePatterns[hash1] == Force {
 				selected = v.Index
 				force = true
 				break
@@ -165,11 +159,9 @@ func (n *Isana) UCT(pos *Position, s Stone, last *Move, playouts *int32) float64
 
 	if !force {
 		for i, v := range pos.Moves {
-			if v != PassMove {
-				_, ok := pos.PseudoMoveStrict(&v)
-				if !ok {
-					continue
-				}
+			_, ok := pos.PseudoMoveStrict(&v)
+			if !ok { // this skip pass move
+				continue
 			}
 			ucb := 0.0
 			if v.Games == 0 {
@@ -186,6 +178,8 @@ func (n *Isana) UCT(pos *Position, s Stone, last *Move, playouts *int32) float64
 				selected = i
 			}
 		}
+		// if there is no candidate move,
+		// PassMove selected.
 	}
 	mv := &pos.Moves[selected]
 	next, ok := pos.PseudoMoveStrict(mv)
@@ -215,6 +209,7 @@ func (n *Isana) UCT(pos *Position, s Stone, last *Move, playouts *int32) float64
 func (n *Isana) playout(current *Position, stone Stone, parent *Position) float64 {
 	// Initialize probability dencities
 	pos := CopyPosition(current)
+	pos.CreateProbs()
 	//
 	s := stone
 	passed := false
@@ -239,7 +234,6 @@ func (n *Isana) playout(current *Position, stone Stone, parent *Position) float6
 		s = s.Opposite()
 		depth--
 	}
-	pos.Dump()
 	score := pos.Score(stone, n.Komi)
 	for _, v := range vxs {
 		if s == Black && score == 0 || s == White && score == -1 {
