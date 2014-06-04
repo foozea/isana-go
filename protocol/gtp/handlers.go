@@ -154,7 +154,7 @@ func genmove(args protocol.Args) {
 		return
 	}
 	pos := Observer.GetCurrentPosition()
-	selected := engine.Engine.Answer(pos, stone)
+	selected := engine.Engine.Answer(pos, stone, Observer.GetLastMove())
 	ret := Observer.MakeMove(&selected)
 	if !ret {
 		fmt.Printf("= PASS\n\n")
@@ -167,7 +167,6 @@ func showboard(args protocol.Args) {
 	fmt.Println("=\n")
 	pos := Observer.GetCurrentPosition()
 	pos.Dump()
-	pos.GoStringDump()
 	fmt.Printf("Black (X) : %v stones\n", pos.BlackPrison)
 	fmt.Printf("White (O) : %v stones\n\n", pos.WhitePrison)
 }

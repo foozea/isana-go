@@ -29,6 +29,7 @@ import (
 
 	. "github.com/foozea/isana/board/stone"
 	. "github.com/foozea/isana/board/vertex"
+	. "github.com/foozea/isana/hashing"
 	. "github.com/foozea/isana/misc"
 	. "github.com/foozea/isana/position"
 	. "github.com/foozea/isana/position/move"
@@ -55,17 +56,17 @@ type Isana struct {
 }
 
 func createEngine() Isana {
-	return Isana{"", "", 0.0, 1, 0, 0.24, 0, 0}
+	return Isana{"", "", 0.0, 1, 0, 0.3, 0, 0}
 }
 
 // Optimistic negotiation between <Roots> number processes.
 // the criterion is the game count that the move is selected.
-func (n *Isana) Answer(pos *Position, stone Stone) Move {
+func (n *Isana) Answer(pos *Position, stone Stone, last *Move) Move {
 
 	defer Un(Trace("Isana#Answer"))
 
 	n.maxPlayoutDepth = pos.Size.Capacity()
-	n.minPlayout = int32(float64(pos.Size.Capacity()) / 5.0)
+	n.minPlayout = int32(float64(pos.Size.Capacity()) / 2.0)
 
 	// Root Parallelize
 	mvs := make([]Move, 0)
@@ -75,7 +76,7 @@ func (n *Isana) Answer(pos *Position, stone Stone) Move {
 		go func() {
 			defer wg.Done()
 			copied := CopyPosition(pos)
-			mvs = append(mvs, n.Think(&copied, stone))
+			mvs = append(mvs, n.Think(&copied, stone, last))
 		}()
 	}
 	wg.Wait()
@@ -92,7 +93,9 @@ func (n *Isana) Answer(pos *Position, stone Stone) Move {
 
 // Main logic for search trees.
 // Parallelized for each trees, the shared memories must be locked.
-func (n *Isana) Think(pos *Position, s Stone) Move {
+func (n *Isana) Think(pos *Position, s Stone, last *Move) Move {
+
+	var playouts int32
 
 	// Tree parallelize
 	var wg WaitGroup
@@ -100,7 +103,7 @@ func (n *Isana) Think(pos *Position, s Stone) Move {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			n.UCT(pos, s)
+			n.UCT(pos, s, last, &playouts)
 		}()
 	}
 	wg.Wait()
@@ -119,7 +122,7 @@ func (n *Isana) Think(pos *Position, s Stone) Move {
 
 // UCT recursively search the tree.
 // evaluation criteria is UCB1 with RAVE.
-func (n *Isana) UCT(pos *Position, s Stone) float64 {
+func (n *Isana) UCT(pos *Position, s Stone, last *Move, playouts *int32) float64 {
 	selected := pos.Size.Capacity()
 	maxUcb := -999.0
 	// If moves-slice is empty, create all moves.
@@ -134,28 +137,49 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 	}
 	mutex.Unlock()
 
-	for i, v := range pos.Moves {
-
-		if v != PassMove {
-			_, ok := pos.PseudoMoveStrict(&v)
-			if !ok {
-				continue
+	force := false
+	lv := last.Vertex
+	directions := []Vertex{lv.Up(), lv.Down(), lv.Left(), lv.Right(),
+		lv.Up().Left(), lv.Up().Right(), lv.Down().Left(), lv.Down().Right()}
+	if last.Vertex != Outbound {
+		for _, v := range directions {
+			if pos.GetStone(v) == Empty {
+				break
+			}
+			hash1 := pos.SquaredHash3x3(v)
+			if HanePatterns[hash1] == Force ||
+				KiriPatterns[hash1] == Force ||
+				EdgePatterns[hash1] == Force {
+				selected = v.Index
+				force = true
+				break
 			}
 		}
-		ucb := 0.0
-		if v.Games == 0 {
-			ucb = 10000
-		} else {
-			ucb = v.Rate + n.factor*Sqrt(Log10(float64(pos.Games))/float64(v.Games))
-			rave := v.RaveRate + n.factor*Sqrt(Log10(float64(pos.RaveGames))/float64(v.RaveGames))
-			beta := Sqrt(float64(v.RaveGames) /
-				(float64(v.RaveGames) + float64(v.Games)*(1.0/0.9+float64(v.RaveGames)*(1.0/20000.0))))
-			ucb = (1-beta)*ucb + beta*rave
+	}
+
+	if !force {
+		for i, v := range pos.Moves {
+			_, ok := pos.PseudoMoveStrict(&v)
+			if !ok { // this skip pass move
+				continue
+			}
+			ucb := 0.0
+			if v.Games == 0 {
+				ucb = 10000
+			} else {
+				ucb = v.Rate + n.factor*Sqrt(Log10(float64(pos.Games))/float64(v.Games))
+				rave := v.RaveRate + n.factor*Sqrt(Log10(float64(pos.RaveGames))/float64(v.RaveGames))
+				beta := Sqrt(float64(v.RaveGames) /
+					(float64(v.RaveGames) + float64(v.Games)*(1.0/0.9+float64(v.RaveGames)*(1.0/20000.0))))
+				ucb = (1-beta)*ucb + beta*rave
+			}
+			if ucb > maxUcb {
+				maxUcb = ucb
+				selected = i
+			}
 		}
-		if ucb > maxUcb {
-			maxUcb = ucb
-			selected = i
-		}
+		// if there is no candidate move,
+		// PassMove selected.
 	}
 	mv := &pos.Moves[selected]
 	next, ok := pos.PseudoMoveStrict(mv)
@@ -170,8 +194,9 @@ func (n *Isana) UCT(pos *Position, s Stone) float64 {
 	win := 0.0
 	if mv.Games <= n.minPlayout {
 		win -= n.playout(next, s.Opposite(), pos)
+		atomic.AddInt32(playouts, 1)
 	} else {
-		win -= n.UCT(next, s.Opposite())
+		win -= n.UCT(next, s.Opposite(), mv, playouts)
 	}
 	mutex.Lock()
 	mv.Rate = (mv.Rate*float64(mv.Games-1) + win) / float64(mv.Games)
