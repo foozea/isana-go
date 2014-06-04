@@ -41,8 +41,8 @@ func (pos *Position) isLegalMove(move *Move) bool {
 
 // Determines if the move fills own eye.
 func (pos *Position) isFillEyeMove(move *Move) bool {
-	hash := pos.SquaredHash3(move.Vertex)
-	category := Patterns[hash]
+	hash := pos.SquaredHash3x3(move.Vertex)
+	category := EyePatterns[hash]
 	if category != 0 && category == Eye {
 		return true
 	}
