@@ -68,7 +68,7 @@ func CreatePosition(size BoardSize) Position {
 		GoStringMap{},
 		GoStringIdentifier{},
 		0, 0,
-		make([]Move, 0),
+		[]Move{},
 		[361]int{},
 		0, [19]int{}}
 }
@@ -87,10 +87,9 @@ func CopyPosition(pos *Position) Position {
 		pos.GoStringMap,
 		pos.GoStrings,
 		0, 0,
-		make([]Move, 0),
-		pos.ProbDencities,
-		pos.TotalProbs,
-		pos.SubTotalProbs}
+		[]Move{},
+		[361]int{},
+		0, [19]int{}}
 
 	return copied
 }

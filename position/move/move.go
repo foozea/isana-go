@@ -31,12 +31,13 @@ type Move struct {
 	Rate      float64
 	RaveGames int32
 	RaveRate  float64
+	UCB       float64
 }
 
-var PassMove Move = Move{stone.Empty, vertex.Outbound, 0, 0.0, 0, 0}
+var PassMove Move = Move{stone.Empty, vertex.Outbound, 0, 0.0, 0, 0, 0}
 
 func CreateMove(s stone.Stone, v vertex.Vertex) *Move {
-	return &Move{s, v, 0, 0.0, 0, 0}
+	return &Move{s, v, 0, 0.0, 0, 0, 0}
 }
 
 func (m *Move) String() string {

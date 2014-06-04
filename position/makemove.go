@@ -82,46 +82,39 @@ func (pos *Position) PseudoMoveStrict(mv *Move) (next *Position, ok bool) {
 // if it is Ko, memory it.
 func (pos *Position) FixMove(move *Move) {
 	pos.SetStone(move.Stone, move.Vertex)
-	opp, v := move.Stone.Opposite(), move.Vertex
-	_ = pos.CreateString(move.Stone, move.Vertex)
+	pos.CreateString(move.Stone, move.Vertex)
+	opp := move.Stone.Opposite()
+	v := move.Vertex
 
-	up, down, left, right :=
-		v.Up(), v.Down(), v.Left(), v.Right()
-	upS, downS, leftS, rightS :=
-		pos.GetStone(up), pos.GetStone(down), pos.GetStone(left), pos.GetStone(right)
+	dir := []Vertex{v.Up(), v.Down(), v.Left(), v.Right()}
+	ss := []Stone{pos.GetStone(dir[0]), pos.GetStone(dir[1]), pos.GetStone(dir[2]), pos.GetStone(dir[3])}
 
-	prisonersCount := pos.TakeStone(opp, up)
-	prisonersCount += pos.TakeStone(opp, down)
-	prisonersCount += pos.TakeStone(opp, left)
-	prisonersCount += pos.TakeStone(opp, right)
-	suicideCount := pos.TakeStone(move.Stone, v)
-
+	prisonersCount := 0
+	for _, v := range dir {
+		prisonersCount += pos.TakeStone(opp, v)
+	}
 	if move.Stone == Black {
 		pos.BlackPrison += prisonersCount
-		pos.WhitePrison += suicideCount
+		pos.WhitePrison += pos.TakeStone(move.Stone, v)
 	} else {
 		pos.WhitePrison += prisonersCount
-		pos.BlackPrison += suicideCount
+		pos.BlackPrison += pos.TakeStone(move.Stone, v)
 	}
-	ko_flag := false
-	if (leftS == opp || leftS == Wall) &&
-		(rightS == opp || rightS == Wall) &&
-		(upS == opp || upS == Wall) &&
-		(downS == opp || downS == Wall) {
-		ko_flag = true
-	}
-	if prisonersCount == 1 && ko_flag {
-		pos.KoStone = move.Stone
-		if pos.GetStone(up) == Empty {
-			pos.Ko = up
-		} else if pos.GetStone(down) == Empty {
-			pos.Ko = down
-		} else if pos.GetStone(left) == Empty {
-			pos.Ko = left
-		} else if pos.GetStone(right) == Empty {
-			pos.Ko = right
+
+	if (ss[0] == opp || ss[0] == Wall) &&
+		(ss[1] == opp || ss[1] == Wall) &&
+		(ss[2] == opp || ss[2] == Wall) &&
+		(ss[3] == opp || ss[3] == Wall) {
+		if prisonersCount == 1 {
+			for i, v := range ss {
+				if v == Empty {
+					pos.Ko = dir[i]
+					pos.KoStone = move.Stone
+					break
+				}
+			}
+			return
 		}
-	} else {
-		pos.Ko, pos.KoStone = Outbound, Empty
 	}
+	pos.Ko, pos.KoStone = Outbound, Empty
 }

@@ -70,7 +70,7 @@ func (pos *Position) SearchProbIndex(value int) int {
 			return i
 		}
 	}
-	return pos.ProbDencities[pos.Size.Capacity()-1]
+	return pos.Size.Capacity() - 1
 }
 
 // Update probability densities.
